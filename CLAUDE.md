@@ -81,7 +81,7 @@ The project has GitHub Actions workflows for:
 - **Basic build check** (`basic.yml`): Simple compilation and test verification
 - **Full CI** (`ci.yml`): Multi-platform builds, formatting, linting, and comprehensive testing
 
-Rust version requirement: 1.75+ (specified in `rust-version` field)
+Rust version requirement: 1.80+ (specified in `rust-version` field)
 
 **Local Development Constraints**: If using older Rust versions locally, rely on GitHub Actions for build verification and quality assurance. The CI pipeline is designed to handle the complete development workflow.
 

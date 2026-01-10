@@ -2,13 +2,13 @@
 
 ## Rustバージョン要件
 
-- **本プロジェクトのMSRV**: Rust 1.74以上
-- **CI環境**: GitHub Actionsで1.75.0を使用
-- **ローカル環境**: Rust 1.75.0以上を推奨（`rust-toolchain.toml`で固定）
+- **本プロジェクトのMSRV**: Rust 1.80以上
+- **CI環境**: GitHub Actionsで1.80.0を使用
+- **ローカル環境**: Rust 1.80.0以上を推奨（`rust-toolchain.toml`で固定）
 
 ## ローカル開発の制限事項
 
-ローカルのRustが1.74未満の場合は、以下の制限があります：
+ローカルのRustが1.80未満の場合は、以下の制限があります：
 
 ### ビルド制限
 - `cargo build`はローカルでは実行できません
@@ -16,8 +16,8 @@
 
 ### 推奨開発フロー
 1. **コード編集**: IDEでコードを編集
-2. **Rust更新**: `rustup toolchain install 1.75.0` を実行
-3. **ツールチェーン設定**: `rustup default 1.75.0` で既定を設定
+2. **Rust更新**: `rustup toolchain install 1.80.0` を実行
+3. **ツールチェーン設定**: `rustup default 1.80.0` で既定を設定
 4. **CI確認**: GitHub Actionsでビルド・テストを確認
 5. **機能実装**: 構造設計とロジック実装に集中
 6. **最終確認**: CIパイプラインで品質保証
@@ -29,10 +29,10 @@
 - タスク管理
 
 ### CI依存の操作
-- ローカルRustが1.74未満の場合のビルド確認（`cargo build`）
-- ローカルRustが1.74未満の場合のテスト実行（`cargo test`）
-- ローカルRustが1.74未満の場合のLintチェック（`cargo clippy`）
-- ローカルRustが1.74未満の場合のフォーマット確認（`cargo fmt`）
+- ローカルRustが1.80未満の場合のビルド確認（`cargo build`）
+- ローカルRustが1.80未満の場合のテスト実行（`cargo test`）
+- ローカルRustが1.80未満の場合のLintチェック（`cargo clippy`）
+- ローカルRustが1.80未満の場合のフォーマット確認（`cargo fmt`）
 
 ## 対処方針
 

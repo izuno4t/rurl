@@ -50,7 +50,7 @@ rurl is designed around three core principles:
 
 ### Prerequisites
 
-- **Rust**: 1.75 or later (CI環境で検証済み、ローカルビルドには最新安定版を推奨)
+- **Rust**: 1.80 or later (CI環境で検証済み、ローカルビルドには最新安定版を推奨)
 - **Git**: For cloning the repository
 
 ### Building from Source
