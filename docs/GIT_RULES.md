@@ -8,7 +8,10 @@ Follow these rules for all Git operations.
 ## Branch Naming
 
 - Use the format `type/short-description` in lowercase (example:
-  `feature/http-client`).
+  `feature/add-chrome-cookie-extractor`).
+- The name must clearly convey the intent of the work on the branch
+  (examples: `feature/implement-browser-cookie-integration`, `feature/add-chrome-cookie-extractor`,
+  `fix/windows-cookie-path`).
 - Allowed types: `feature`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`.
 - Use hyphens for words; avoid spaces and special characters.
 - Names must be valid Git refs (no `..`, `~`, `^`, `:`, `?`, `*`, `[`, `\`,
