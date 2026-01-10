@@ -1,7 +1,11 @@
 # rurl
 
-[![CI](https://github.com/izuno4t/rurl/workflows/CI/badge.svg)](https://github.com/izuno4t/rurl/actions)
-[![Basic Build Check](https://github.com/izuno4t/rurl/workflows/Basic%20Build%20Check/badge.svg)](https://github.com/izuno4t/rurl/actions)
+[![CI][ci-badge]][ci-link]
+[![Basic Build Check][basic]][ci-link]
+
+[ci-badge]: https://github.com/izuno4t/rurl/actions/workflows/ci.yml/badge.svg
+[basic]: https://github.com/izuno4t/rurl/actions/workflows/basic.yml/badge.svg
+[ci-link]: https://github.com/izuno4t/rurl/actions
 
 A Modern curl Alternative Written in Rust
 
@@ -40,11 +44,16 @@ rurl is designed around three core principles:
 
 ### Use Cases
 
-- **Authenticated API Testing**: Test protected endpoints using your browser's auth session
-- **Web Scraping**: Scrape authenticated content without managing complex login flows
-- **Development Workflows**: Seamlessly integrate with web services you're already logged into
-- **Security Research**: Safely examine requests and responses with memory-safe tooling
-- **CI/CD Pipelines**: Drop-in curl replacement with enhanced safety guarantees
+- **Authenticated API Testing**: Test protected endpoints using your browser's
+  auth session
+- **Web Scraping**: Scrape authenticated content without managing complex login
+  flows
+- **Development Workflows**: Seamlessly integrate with web services you're
+  already logged into
+- **Security Research**: Safely examine requests and responses with memory-safe
+  tooling
+- **CI/CD Pipelines**: Drop-in curl replacement with enhanced safety
+  guarantees
 
 ## Installation & Building
 
@@ -91,7 +100,8 @@ If you are using an older Rust version (for example, 1.67.0), you will not be ab
 locally. GitHub Actions is configured to automatically verify code quality and builds.
 
 ### **Man Page Synopsis**
-```
+
+```text
 NAME
        rurl - transfer a URL with browser cookie support
 
@@ -125,7 +135,8 @@ OPTIONS
 
               Format details:
               BROWSER    - Browser name (required)
-              +KEYRING   - Keyring for decrypting Chromium cookies on Linux (optional)
+              +KEYRING   - Keyring for decrypting Chromium cookies on Linux
+                          (optional)
               :PROFILE   - Specific browser profile name (optional)
               ::CONTAINER - Firefox container name (optional)
 
@@ -228,7 +239,8 @@ SUPPORTED PLATFORMS
 SECURITY CONSIDERATIONS
        - Cookies contain sensitive authentication data
        - Only use trusted networks when extracting browser cookies
-       - Consider using --output to save responses rather than displaying in terminal
+       - Consider using --output to save responses rather than displaying in
+         terminal
        - Browser cookies may require elevated privileges on some systems
 
 BROWSER-SPECIFIC NOTES

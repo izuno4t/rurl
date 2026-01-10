@@ -21,6 +21,8 @@
     "curl",
     "httpmock",
     "macos",
+    "redirs",
+    "reimplementation",
     "reqwest",
     "rurl",
     "rustfmt",
