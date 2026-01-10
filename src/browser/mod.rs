@@ -8,9 +8,9 @@ use crate::error::Result;
 use std::collections::HashMap;
 
 pub mod chrome;
+pub mod edge;
 pub mod firefox;
 pub mod safari;
-pub mod edge;
 
 /// Represents a browser cookie
 #[derive(Debug, Clone)]

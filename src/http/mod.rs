@@ -6,9 +6,9 @@ use crate::config::{Config, HttpMethod};
 use crate::error::{Result, RurlError};
 use reqwest::{Client, ClientBuilder, Method};
 
+pub mod auth;
 pub mod request;
 pub mod response;
-pub mod auth;
 
 /// HTTP client wrapper
 pub struct HttpClient {
@@ -32,14 +32,15 @@ impl HttpClient {
         if let Some(proxy_config) = &config.proxy {
             let proxy = reqwest::Proxy::all(&proxy_config.url)
                 .map_err(|e| RurlError::Proxy(format!("Invalid proxy: {}", e)))?;
-            
-            let proxy = if let (Some(username), Some(password)) = 
-                (&proxy_config.username, &proxy_config.password) {
+
+            let proxy = if let (Some(username), Some(password)) =
+                (&proxy_config.username, &proxy_config.password)
+            {
                 proxy.basic_auth(username, password)
             } else {
                 proxy
             };
-            
+
             builder = builder.proxy(proxy);
         }
 
@@ -48,8 +49,7 @@ impl HttpClient {
             builder = builder.danger_accept_invalid_certs(true);
         }
 
-        let client = builder.build()
-            .map_err(|e| RurlError::Http(e))?;
+        let client = builder.build().map_err(|e| RurlError::Http(e))?;
 
         Ok(Self { client, config })
     }
@@ -80,8 +80,9 @@ impl HttpClient {
         }
 
         // Add authentication
-        if let (Some(username), Some(password)) = 
-            (&self.config.auth_username, &self.config.auth_password) {
+        if let (Some(username), Some(password)) =
+            (&self.config.auth_username, &self.config.auth_password)
+        {
             request = request.basic_auth(username, Some(password));
         }
 

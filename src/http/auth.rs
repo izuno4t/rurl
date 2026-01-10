@@ -21,12 +21,12 @@ impl Auth {
         let encoded = base64::engine::general_purpose::STANDARD.encode(credentials.as_bytes());
         format!("Basic {}", encoded)
     }
-    
+
     /// Create bearer token header value
     pub fn bearer_token(token: &str) -> String {
         format!("Bearer {}", token)
     }
-    
+
     /// Parse user:password format
     pub fn parse_user_pass(input: &str) -> Result<(String, String)> {
         let parts: Vec<&str> = input.splitn(2, ':').collect();

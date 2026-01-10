@@ -60,10 +60,9 @@ impl BrowserCookieConfig {
         let browser_str = browser_keyring_split.next().unwrap();
         let keyring = browser_keyring_split.next().map(|s| s.to_string());
 
-        let browser = Browser::from_str(browser_str)
-            .ok_or_else(|| crate::error::RurlError::Config(
-                format!("Unsupported browser: {}", browser_str)
-            ))?;
+        let browser = Browser::from_str(browser_str).ok_or_else(|| {
+            crate::error::RurlError::Config(format!("Unsupported browser: {}", browser_str))
+        })?;
 
         Ok(BrowserCookieConfig {
             browser,

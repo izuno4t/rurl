@@ -17,9 +17,8 @@ impl UrlUtils {
             format!("http://{}", input)
         };
 
-        Url::parse(&url_str).map_err(|e| {
-            RurlError::InvalidUrl(format!("Invalid URL '{}': {}", input, e))
-        })
+        Url::parse(&url_str)
+            .map_err(|e| RurlError::InvalidUrl(format!("Invalid URL '{}': {}", input, e)))
     }
 
     /// Extract domain from URL for cookie filtering
@@ -38,7 +37,9 @@ impl FileUtils {
             if let Some(home_dir) = dirs::home_dir() {
                 Ok(home_dir.join(&path[2..]))
             } else {
-                Err(RurlError::Config("Cannot determine home directory".to_string()))
+                Err(RurlError::Config(
+                    "Cannot determine home directory".to_string(),
+                ))
             }
         } else {
             Ok(PathBuf::from(path))
@@ -55,10 +56,7 @@ impl FileUtils {
         }
 
         if !path.is_file() {
-            return Err(RurlError::Config(format!(
-                "Path is not a file: {:?}",
-                path
-            )));
+            return Err(RurlError::Config(format!("Path is not a file: {:?}", path)));
         }
 
         // Check if readable (basic check)
@@ -109,9 +107,9 @@ impl StringUtils {
             )));
         };
 
-        let number: u64 = number_part.parse().map_err(|_| {
-            RurlError::Config(format!("Invalid timeout number: '{}'", number_part))
-        })?;
+        let number: u64 = number_part
+            .parse()
+            .map_err(|_| RurlError::Config(format!("Invalid timeout number: '{}'", number_part)))?;
 
         Ok(std::time::Duration::from_secs(number * suffix))
     }
