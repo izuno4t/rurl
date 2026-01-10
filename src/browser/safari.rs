@@ -1,6 +1,6 @@
 //! Safari browser cookie extraction (macOS only)
 
-use crate::browser::{Cookie, CookieStore};
+use crate::browser::CookieStore;
 use crate::config::BrowserCookieConfig;
 use crate::error::{Result, RurlError};
 
@@ -23,6 +23,7 @@ pub async fn extract_cookies(config: &BrowserCookieConfig) -> Result<CookieStore
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
+    use crate::browser::Cookie;
     use std::fs;
     use std::path::PathBuf;
 

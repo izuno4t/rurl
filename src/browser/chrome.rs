@@ -1,6 +1,6 @@
 //! Chrome/Chromium browser cookie extraction
 
-use crate::browser::{Cookie, CookieStore};
+use crate::browser::CookieStore;
 use crate::config::BrowserCookieConfig;
 use crate::error::{Result, RurlError};
 
@@ -40,6 +40,7 @@ pub fn extract_chromium_cookies(
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
+    use crate::browser::Cookie;
     use aes::Aes128;
     use cbc::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
     use dirs::home_dir;
