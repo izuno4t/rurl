@@ -26,7 +26,7 @@ Use Cargo from the repo root:
 - `cargo fmt --all -- --check`: Format check.
 - `cargo clippy --all-targets -- -D warnings`: Lint with warnings as errors.
 
-Local note: the documented MSRV is 1.80+, and CI uses 1.80. If your local Rust is older, rely on CI for build/test verification.
+Local note: the documented MSRV is 1.92+, and CI uses 1.92. If your local Rust is older, rely on CI for build/test verification.
 
 ## Coding Style & Naming Conventions
 - Indentation: 4 spaces per Rust standard (rustfmt). Run `cargo fmt` before pushing.
