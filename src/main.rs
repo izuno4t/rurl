@@ -1,5 +1,6 @@
-use rurl::cli;
+use rurl::{cli, logging};
 
 fn main() {
+    logging::init();
     cli::run();
 }

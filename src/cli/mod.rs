@@ -2,25 +2,25 @@
 //!
 //! This module handles command-line argument parsing and application entry point.
 
-use crate::config::{BrowserCookieConfig, Config, HttpMethod};
+use crate::config::{BrowserCookieConfig, Config, HttpMethod, ProxyConfig};
 use crate::error::{Result, RurlError};
 use crate::http::HttpClient;
 use crate::utils::{FileUtils, StringUtils, UrlUtils};
 use clap::{Arg, ArgMatches, Command};
+use log::{error, info};
 
 pub mod args;
 pub mod runner;
 
 /// Main entry point for the CLI application
 pub fn run() {
-    env_logger::init();
-
     let app = create_app();
     let matches = app.get_matches();
 
     match run_with_args(&matches) {
         Ok(()) => {}
         Err(e) => {
+            error!("request failed: {}", e);
             eprintln!("rurl: error: {}", e);
             std::process::exit(1);
         }
@@ -30,6 +30,7 @@ pub fn run() {
 /// Run rurl with parsed command line arguments
 fn run_with_args(matches: &ArgMatches) -> Result<()> {
     let config = build_config_from_args(matches)?;
+    info!("request: {} {}", config.method, config.url);
 
     // Create HTTP client and execute request
     let rt = tokio::runtime::Runtime::new()
@@ -123,6 +124,12 @@ fn create_app() -> Command {
                 .help("Use proxy server"),
         )
         .arg(
+            Arg::new("proxy-user")
+                .long("proxy-user")
+                .value_name("USER[:PASSWORD]")
+                .help("Proxy authentication"),
+        )
+        .arg(
             Arg::new("insecure")
                 .short('k')
                 .long("insecure")
@@ -135,6 +142,12 @@ fn create_app() -> Command {
                 .long("location")
                 .help("Follow redirects")
                 .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("max-redirs")
+                .long("max-redirs")
+                .value_name("NUMBER")
+                .help("Maximum number of redirects to follow"),
         )
         .arg(
             Arg::new("user-agent")
@@ -156,6 +169,18 @@ fn create_app() -> Command {
                 .value_name("SECONDS")
                 .help("Maximum time for connection")
                 .default_value("30"),
+        )
+        .arg(
+            Arg::new("retry")
+                .long("retry")
+                .value_name("NUMBER")
+                .help("Number of retry attempts"),
+        )
+        .arg(
+            Arg::new("retry-delay")
+                .long("retry-delay")
+                .value_name("SECONDS")
+                .help("Delay between retries"),
         )
         .arg(
             Arg::new("cacert")
@@ -219,6 +244,34 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
         config.auth_password = Some(password);
     }
 
+    // Configure proxy
+    let proxy_user = matches.get_one::<String>("proxy-user");
+    if let Some(proxy_url) = matches.get_one::<String>("proxy") {
+        let mut proxy_config = ProxyConfig {
+            url: proxy_url.clone(),
+            username: None,
+            password: None,
+        };
+
+        if let Some(proxy_user_str) = proxy_user {
+            let mut parts = proxy_user_str.splitn(2, ':');
+            let username = parts.next().unwrap_or_default();
+            if username.is_empty() {
+                return Err(RurlError::Config(
+                    "Proxy user must include a username".to_string(),
+                ));
+            }
+            proxy_config.username = Some(username.to_string());
+            proxy_config.password = parts.next().map(|s| s.to_string());
+        }
+
+        config.proxy = Some(proxy_config);
+    } else if proxy_user.is_some() {
+        return Err(RurlError::Config(
+            "Proxy user provided without proxy".to_string(),
+        ));
+    }
+
     // Configure output
     config.output.verbose = matches.get_flag("verbose");
     config.output.silent = matches.get_flag("silent");
@@ -229,6 +282,11 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
 
     // Configure redirects
     config.follow_redirects = matches.get_flag("location");
+    if let Some(max_redirs_str) = matches.get_one::<String>("max-redirs") {
+        config.max_redirects = max_redirs_str.parse::<u32>().map_err(|_| {
+            RurlError::Config(format!("Invalid max-redirs value: {}", max_redirs_str))
+        })?;
+    }
 
     // Configure SSL
     config.ssl.verify_certs = !matches.get_flag("insecure");
@@ -252,6 +310,17 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
 
     if let Some(connect_timeout_str) = matches.get_one::<String>("connect-timeout") {
         config.connect_timeout = StringUtils::parse_timeout(connect_timeout_str)?;
+    }
+
+    // Configure retries
+    if let Some(retry_str) = matches.get_one::<String>("retry") {
+        config.retry_count = retry_str
+            .parse::<u32>()
+            .map_err(|_| RurlError::Config(format!("Invalid retry value: {}", retry_str)))?;
+    }
+
+    if let Some(retry_delay_str) = matches.get_one::<String>("retry-delay") {
+        config.retry_delay = StringUtils::parse_timeout(retry_delay_str)?;
     }
 
     // Configure User-Agent

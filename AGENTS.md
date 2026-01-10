@@ -47,3 +47,6 @@ Local note: the documented MSRV is 1.92+, and CI uses 1.92. If your local Rust i
 - Always read `docs/WORKING_PRINCIPLES.md` and `docs/TASK.md` before starting work.
 - Create a brief plan before implementation and update `docs/TASK.md` when task status changes.
 - When adding browser-cookie features, keep the yt-dlp style spec in mind: `BROWSER[+KEYRING][:PROFILE][::CONTAINER]`.
+
+## Completion Check
+Before marking work as complete, ensure `make all` succeeds locally.

@@ -21,3 +21,5 @@ build:
 lint: fmt-check clippy
 
 verify: lint check test
+
+all: verify build

@@ -11,9 +11,9 @@
 ### Phase 1: プロジェクト基盤構築
 | T001 | 完了 | Rustプロジェクト初期化とCargo.toml設定 | 0.5日 | - | - | cratesの選定含む |
 | T002 | 完了 | プロジェクト構造とモジュール設計 | 1日 | T001 | - | src/lib.rs, main.rs等 |
-| T000 | 未着手 | GitHub Actions基本ビルド確認設定 | 0.5日 | T002 | - | Rust build, testのみ |
-| T003 | 未着手 | CLI引数パーサー実装（clap使用） | 1日 | T000 | - | curl互換オプション対応 |
-| T004 | 未着手 | 基本的なログ出力システム構築 | 0.5日 | T002 | - | env_logger or tracing |
+| T000 | 完了 | GitHub Actions基本ビルド確認設定 | 0.5日 | T002 | - | Rust build, testのみ |
+| T003 | 完了 | CLI引数パーサー実装（clap使用） | 1日 | T000 | - | curl互換オプション対応 |
+| T004 | 完了 | 基本的なログ出力システム構築 | 0.5日 | T002 | - | env_logger or tracing |
 
 ### Phase 2: HTTP基本機能実装
 | T005 | 未着手 | HTTP/HTTPSクライアント基盤実装 | 2日 | T003 | - | reqwest or hyper使用 |

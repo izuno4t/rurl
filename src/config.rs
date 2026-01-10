@@ -1,6 +1,7 @@
 //! Configuration management for rurl
 
 use std::collections::HashMap;
+use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
@@ -86,6 +87,22 @@ pub enum HttpMethod {
     Options,
     Patch,
     Trace,
+}
+
+impl fmt::Display for HttpMethod {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let method = match self {
+            HttpMethod::Get => "GET",
+            HttpMethod::Post => "POST",
+            HttpMethod::Put => "PUT",
+            HttpMethod::Delete => "DELETE",
+            HttpMethod::Head => "HEAD",
+            HttpMethod::Options => "OPTIONS",
+            HttpMethod::Patch => "PATCH",
+            HttpMethod::Trace => "TRACE",
+        };
+        write!(f, "{}", method)
+    }
 }
 
 impl FromStr for HttpMethod {
