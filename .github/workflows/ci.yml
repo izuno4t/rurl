@@ -1,18 +1,22 @@
 name: CI
 
 on:
-  workflow_run:
-    workflows: ["Basic Build Check"]
-    types: [completed]
+  push:
+    branches: [ main, develop, "feature/**", "claude/**" ]
+  pull_request:
+    branches: [ main, develop, "feature/**", "claude/**" ]
+  push:
+    branches: [ main, develop, "feature/**", "claude/**" ]
+  pull_request:
+    branches: [ main, develop, "feature/**", "claude/**" ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test
+  basic-check:
+    name: Basic Build Check
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - uses: actions/checkout@v4
     
@@ -35,12 +39,10 @@ jobs:
           
     - name: Verify (fmt, clippy, check, test)
       run: make verify
-      
-    - name: Build release
-      run: cargo build --release
 
   build:
     name: Build
+    needs: basic-check
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -70,3 +72,30 @@ jobs:
       
     - name: Test build
       run: cargo test --verbose
+
+  release-build:
+    name: Release Build
+    needs: basic-check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: 1.92.0
+        components: rustfmt, clippy
+        
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+          
+    - name: Build release
+      run: cargo build --release
