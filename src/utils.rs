@@ -94,12 +94,12 @@ impl StringUtils {
             return Ok(std::time::Duration::from_secs(seconds));
         }
 
-        let (number_part, suffix) = if input.ends_with('s') {
-            (&input[..input.len() - 1], 1)
-        } else if input.ends_with('m') {
-            (&input[..input.len() - 1], 60)
-        } else if input.ends_with('h') {
-            (&input[..input.len() - 1], 3600)
+        let (number_part, suffix) = if let Some(stripped) = input.strip_suffix('s') {
+            (stripped, 1)
+        } else if let Some(stripped) = input.strip_suffix('m') {
+            (stripped, 60)
+        } else if let Some(stripped) = input.strip_suffix('h') {
+            (stripped, 3600)
         } else {
             return Err(RurlError::Config(format!(
                 "Invalid timeout format: '{}'. Use number with optional suffix (s/m/h)",

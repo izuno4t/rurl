@@ -49,7 +49,7 @@ impl HttpClient {
             builder = builder.danger_accept_invalid_certs(true);
         }
 
-        let client = builder.build().map_err(|e| RurlError::Http(e))?;
+        let client = builder.build().map_err(RurlError::Http)?;
 
         Ok(Self { client, config })
     }

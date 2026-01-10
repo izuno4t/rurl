@@ -16,3 +16,9 @@ impl RequestBuilder {
         Ok(self)
     }
 }
+
+impl Default for RequestBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}

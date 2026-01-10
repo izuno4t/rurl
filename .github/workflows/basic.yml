@@ -33,8 +33,5 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
           
-    - name: Check if code compiles
-      run: cargo check --all-targets
-      
-    - name: Run basic tests
-      run: cargo test --all
+    - name: Verify (fmt, clippy, check, test)
+      run: make verify

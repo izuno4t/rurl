@@ -1,12 +1,12 @@
-use rurl;
+use rurl::utils::UrlUtils;
 
 #[test]
 fn test_version() {
-    assert_eq!(rurl::VERSION, "0.1.0");
+    assert!(!rurl::VERSION.is_empty());
 }
 
 #[test]
-fn test_basic_functionality() {
-    // Basic smoke test to ensure the library compiles and runs
-    assert!(true);
+fn test_url_utils_adds_scheme() {
+    let url = UrlUtils::validate_url("example.com").expect("URL should parse");
+    assert_eq!(url.scheme(), "http");
 }

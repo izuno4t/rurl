@@ -40,7 +40,7 @@ fn run_with_args(matches: &ArgMatches) -> Result<()> {
         let response = client.execute().await?;
 
         // Handle response output
-        let body = response.text().await.map_err(|e| RurlError::Http(e))?;
+        let body = response.text().await.map_err(RurlError::Http)?;
 
         println!("{}", body);
         Ok(())
@@ -189,8 +189,9 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
 
     // Parse HTTP method
     if let Some(method_str) = matches.get_one::<String>("request") {
-        config.method = HttpMethod::from_str(method_str)
-            .ok_or_else(|| RurlError::Config(format!("Unknown HTTP method: {}", method_str)))?;
+        config.method = method_str
+            .parse::<HttpMethod>()
+            .map_err(|_| RurlError::Config(format!("Unknown HTTP method: {}", method_str)))?;
     }
 
     // Parse headers

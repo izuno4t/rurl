@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::time::Duration;
 
 use crate::error::Result;
@@ -19,19 +20,20 @@ pub enum Browser {
     Whale,
 }
 
-impl Browser {
-    /// Parse browser from string
-    pub fn from_str(s: &str) -> Option<Self> {
+impl FromStr for Browser {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "chrome" | "chromium" => Some(Browser::Chrome),
-            "firefox" => Some(Browser::Firefox),
-            "safari" => Some(Browser::Safari),
-            "edge" => Some(Browser::Edge),
-            "brave" => Some(Browser::Brave),
-            "opera" => Some(Browser::Opera),
-            "vivaldi" => Some(Browser::Vivaldi),
-            "whale" => Some(Browser::Whale),
-            _ => None,
+            "chrome" | "chromium" => Ok(Browser::Chrome),
+            "firefox" => Ok(Browser::Firefox),
+            "safari" => Ok(Browser::Safari),
+            "edge" => Ok(Browser::Edge),
+            "brave" => Ok(Browser::Brave),
+            "opera" => Ok(Browser::Opera),
+            "vivaldi" => Ok(Browser::Vivaldi),
+            "whale" => Ok(Browser::Whale),
+            _ => Err(()),
         }
     }
 }
@@ -60,7 +62,7 @@ impl BrowserCookieConfig {
         let browser_str = browser_keyring_split.next().unwrap();
         let keyring = browser_keyring_split.next().map(|s| s.to_string());
 
-        let browser = Browser::from_str(browser_str).ok_or_else(|| {
+        let browser = browser_str.parse::<Browser>().map_err(|_| {
             crate::error::RurlError::Config(format!("Unsupported browser: {}", browser_str))
         })?;
 
@@ -86,18 +88,20 @@ pub enum HttpMethod {
     Trace,
 }
 
-impl HttpMethod {
-    pub fn from_str(s: &str) -> Option<Self> {
+impl FromStr for HttpMethod {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_uppercase().as_str() {
-            "GET" => Some(HttpMethod::Get),
-            "POST" => Some(HttpMethod::Post),
-            "PUT" => Some(HttpMethod::Put),
-            "DELETE" => Some(HttpMethod::Delete),
-            "HEAD" => Some(HttpMethod::Head),
-            "OPTIONS" => Some(HttpMethod::Options),
-            "PATCH" => Some(HttpMethod::Patch),
-            "TRACE" => Some(HttpMethod::Trace),
-            _ => None,
+            "GET" => Ok(HttpMethod::Get),
+            "POST" => Ok(HttpMethod::Post),
+            "PUT" => Ok(HttpMethod::Put),
+            "DELETE" => Ok(HttpMethod::Delete),
+            "HEAD" => Ok(HttpMethod::Head),
+            "OPTIONS" => Ok(HttpMethod::Options),
+            "PATCH" => Ok(HttpMethod::Patch),
+            "TRACE" => Ok(HttpMethod::Trace),
+            _ => Err(()),
         }
     }
 }

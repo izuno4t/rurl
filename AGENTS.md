@@ -25,6 +25,7 @@ Use Cargo from the repo root:
 - `cargo test`: Run tests; `cargo test basic` runs the basic test.
 - `cargo fmt --all -- --check`: Format check.
 - `cargo clippy --all-targets -- -D warnings`: Lint with warnings as errors.
+- `make verify`: Run fmt-check, clippy, check, and tests in one go.
 
 Local note: the documented MSRV is 1.92+, and CI uses 1.92. If your local Rust is older, rely on CI for build/test verification.
 
