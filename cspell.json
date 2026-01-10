@@ -15,7 +15,9 @@
   ],
   "words": [
     "anyhow",
+    "brotli",
     "clippy",
+    "codegen",
     "curl",
     "httpmock",
     "macos",
@@ -25,7 +27,12 @@
     "rustls",
     "rustup",
     "serde",
-    "tokio"
+    "tempfile",
+    "thiserror",
+    "tokio",
+    "winapi",
+    "wincrypt",
+    "winuser"
   ],
   "ignoreRegExpList": [
     "yt-dlp"
