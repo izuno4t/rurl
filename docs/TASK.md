@@ -31,15 +31,27 @@
 | タスクID | ステータス | タスク内容 | 見積工数 | 依存関係 | 担当者 | 備考 |
 | --- | --- | --- | --- | --- | --- | --- |
 | T010 | 完了 | ブラウザクッキー抽出ライブラリ調査・選定 | 1日 | T002 | - | yt-dlp実装を参考に自前実装方針 |
-| T011 | 作業中 | Chromeクッキー抽出機能実装（macOS） | 1日 | T010 | - | Keychain復号まで対応 |
+| T011 | 完了 | Chromeクッキー抽出機能実装（macOS） | 1日 | T010 | - | Keychain復号まで対応 |
 | T011a | 未着手 | Chromeクッキー抽出機能実装（Windows） | 1日 | T011 | - | DPAPI対応 |
 | T011b | 未着手 | Chromeクッキー抽出機能実装（Linux） | 1日 | T011 | - | keyring対応 |
-| T012 | 未着手 | Firefoxクッキー抽出機能実装 | 2日 | T010 | - | SQLiteベース、プロファイル対応 |
-| T013 | 未着手 | Safariクッキー抽出機能実装（macOS） | 2日 | T010 | - | .binarycookies形式対応 |
-| T014 | 未着手 | Edgeクッキー抽出機能実装 | 1日 | T011 | - | Chrome同等（Chromium系） |
-| T015 | 未着手 | その他ブラウザ対応（Brave, Opera等） | 2日 | T011,T012 | - | 主要ブラウザカバー |
-| T016 | 未着手 | ブラウザプロファイル指定機能 | 1日 | T011-T015 | - | :PROFILE構文対応 |
-| T017 | 未着手 | Firefoxコンテナタブ対応 | 1日 | T012 | - | ::CONTAINER構文対応 |
+| T012 | 完了 | Firefoxクッキー抽出機能実装（macOS） | 1日 | T010 | - | SQLiteベース、プロファイル対応 |
+| T012a | 未着手 | Firefoxクッキー抽出機能実装（Windows） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
+| T012b | 未着手 | Firefoxクッキー抽出機能実装（Linux） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
+| T013 | 完了 | Safariクッキー抽出機能実装（macOS） | 2日 | T010 | - | .binarycookies形式対応 |
+| T013a | 対象外 | Safariクッキー抽出機能実装（Windows） | - | T013 | - | Safari未対応 |
+| T013b | 対象外 | Safariクッキー抽出機能実装（Linux） | - | T013 | - | Safari未対応 |
+| T014 | 完了 | Edgeクッキー抽出機能実装（macOS） | 0.5日 | T011 | - | Chrome同等（Chromium系） |
+| T014a | 未着手 | Edgeクッキー抽出機能実装（Windows） | 0.5日 | T011a | - | Chrome同等（Chromium系） |
+| T014b | 未着手 | Edgeクッキー抽出機能実装（Linux） | 0.5日 | T011b | - | Chrome同等（Chromium系） |
+| T015 | 完了 | その他ブラウザ対応（macOS） | 1日 | T011,T012 | - | Brave, Opera, Vivaldi等 |
+| T015a | 未着手 | その他ブラウザ対応（Windows） | 1日 | T011a,T012a | - | Brave, Opera, Vivaldi等 |
+| T015b | 未着手 | その他ブラウザ対応（Linux） | 1日 | T011b,T012b | - | Brave, Opera, Vivaldi等 |
+| T016 | 完了 | ブラウザプロファイル指定機能（macOS） | 0.5日 | T011,T012,T014,T015 | - | :PROFILE構文対応 |
+| T016a | 未着手 | ブラウザプロファイル指定機能（Windows） | 0.5日 | T011a,T012a,T014a,T015a | - | :PROFILE構文対応 |
+| T016b | 未着手 | ブラウザプロファイル指定機能（Linux） | 0.5日 | T011b,T012b,T014b,T015b | - | :PROFILE構文対応 |
+| T017 | 完了 | Firefoxコンテナタブ対応（macOS） | 0.5日 | T012 | - | ::CONTAINER構文対応 |
+| T017a | 未着手 | Firefoxコンテナタブ対応（Windows） | 0.5日 | T012a | - | ::CONTAINER構文対応 |
+| T017b | 未着手 | Firefoxコンテナタブ対応（Linux） | 0.5日 | T012b | - | ::CONTAINER構文対応 |
 | T018 | 未着手 | LinuxキーリングでのChromium復号化 | 2日 | T011 | - | +KEYRING構文対応 |
 
 ### Phase 4: プロキシ・SSL/TLS機能

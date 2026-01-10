@@ -41,14 +41,22 @@ impl BrowserCookieExtractor {
     /// Extract cookies for the specified domain
     pub async fn extract_cookies(&self) -> Result<CookieStore> {
         match self.config.browser {
-            Browser::Chrome => chrome::extract_cookies().await,
-            Browser::Firefox => firefox::extract_cookies().await,
-            Browser::Safari => safari::extract_cookies().await,
-            Browser::Edge => edge::extract_cookies().await,
-            Browser::Brave => chrome::extract_cookies().await, // Brave uses Chrome base
-            Browser::Opera => chrome::extract_cookies().await, // Opera uses Chromium
-            Browser::Vivaldi => chrome::extract_cookies().await, // Vivaldi uses Chromium
-            Browser::Whale => chrome::extract_cookies().await, // Whale uses Chromium
+            Browser::Chrome => chrome::extract_cookies(&self.config).await,
+            Browser::Firefox => firefox::extract_cookies(&self.config).await,
+            Browser::Safari => safari::extract_cookies(&self.config).await,
+            Browser::Edge => edge::extract_cookies(&self.config).await,
+            Browser::Brave => {
+                chrome::extract_chromium_cookies(chrome::ChromiumBrowser::Brave, &self.config)
+            }
+            Browser::Opera => {
+                chrome::extract_chromium_cookies(chrome::ChromiumBrowser::Opera, &self.config)
+            }
+            Browser::Vivaldi => {
+                chrome::extract_chromium_cookies(chrome::ChromiumBrowser::Vivaldi, &self.config)
+            }
+            Browser::Whale => {
+                chrome::extract_chromium_cookies(chrome::ChromiumBrowser::Whale, &self.config)
+            }
         }
     }
 
