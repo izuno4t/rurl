@@ -1,5 +1,8 @@
 # rurl
 
+[![CI](https://github.com/izuno4t/rurl/workflows/CI/badge.svg)](https://github.com/izuno4t/rurl/actions)
+[![Basic Build Check](https://github.com/izuno4t/rurl/workflows/Basic%20Build%20Check/badge.svg)](https://github.com/izuno4t/rurl/actions)
+
 A Modern curl Alternative Written in Rust
 
 ## What is rurl?
@@ -42,7 +45,49 @@ rurl is designed around three core principles:
 - **Development Workflows**: Seamlessly integrate with web services you're already logged into
 - **Security Research**: Safely examine requests and responses with memory-safe tooling
 - **CI/CD Pipelines**: Drop-in curl replacement with enhanced safety guarantees
+
+## Installation & Building
+
+### Prerequisites
+
+- **Rust**: 1.75 or later (CI環境で検証済み、ローカルビルドには最新安定版を推奨)
+- **Git**: For cloning the repository
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/izuno4t/rurl.git
+cd rurl
+
+# Build in development mode
+cargo build
+
+# Build optimized release version
+cargo build --release
+
+# Run tests
+cargo test
+
+# Install locally
+cargo install --path .
 ```
+
+### Development
+
+```bash
+# Check code formatting
+cargo fmt --all -- --check
+
+# Run linter
+cargo clippy --all-targets -- -D warnings
+
+# Check compilation without building
+cargo check
+```
+
+**ローカル環境の制約について**: 
+古いRustバージョン（1.67.0など）をお使いの場合、ローカルビルドは実行できません。GitHub Actionsが設定されており、コード品質とビルド確認は自動的に行われます。
 
 ### **Man Page Synopsis**
 ```

@@ -1,0 +1,33 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "ignorePaths": [
+    "target",
+    "Cargo.lock",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.gif",
+    "**/*.svg",
+    "**/*.pdf",
+    "**/*.zip"
+  ],
+  "words": [
+    "anyhow",
+    "clippy",
+    "curl",
+    "httpmock",
+    "macos",
+    "reqwest",
+    "rurl",
+    "rustfmt",
+    "rustls",
+    "rustup",
+    "serde",
+    "tokio"
+  ],
+  "ignoreRegExpList": [
+    "yt-dlp"
+  ]
+}

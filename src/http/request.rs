@@ -1,16 +1,14 @@
 //! HTTP request handling
 
-use crate::config::Config;
 use crate::error::Result;
 
 /// Request builder utilities
 pub struct RequestBuilder {
-    config: Config,
 }
 
 impl RequestBuilder {
-    pub fn new(config: Config) -> Self {
-        Self { config }
+    pub fn new() -> Self {
+        Self {}
     }
     
     /// Prepare request with browser cookies

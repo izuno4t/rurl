@@ -2,4 +2,72 @@
 
 use crate::config::OutputConfig;
 use crate::error::Result;
-use std::fs::File;\nuse std::io::{self, Write};\nuse std::path::Path;\n\n/// Output writer that handles file vs stdout\npub struct OutputWriter {\n    config: OutputConfig,\n}\n\nimpl OutputWriter {\n    pub fn new(config: OutputConfig) -> Self {\n        Self { config }\n    }\n    \n    /// Write content to configured output\n    pub fn write(&self, content: &str) -> Result<()> {\n        if let Some(file_path) = &self.config.file {\n            self.write_to_file(content, file_path)\n        } else {\n            self.write_to_stdout(content)\n        }\n    }\n    \n    /// Write verbose information (if enabled)\n    pub fn write_verbose(&self, message: &str) -> Result<()> {\n        if self.config.verbose && !self.config.silent {\n            eprintln!(\"* {}\", message);\n        }\n        Ok(())\n    }\n    \n    /// Write error message\n    pub fn write_error(&self, message: &str) -> Result<()> {\n        if !self.config.silent {\n            eprintln!(\"rurl: error: {}\", message);\n        }\n        Ok(())\n    }\n    \n    fn write_to_file(&self, content: &str, file_path: &Path) -> Result<()> {\n        let mut file = File::create(file_path)?;\n        file.write_all(content.as_bytes())?;\n        Ok(())\n    }\n    \n    fn write_to_stdout(&self, content: &str) -> Result<()> {\n        io::stdout().write_all(content.as_bytes())?;\n        Ok(())\n    }\n}\n\n/// Progress indicator for long-running operations\npub struct ProgressIndicator {\n    enabled: bool,\n}\n\nimpl ProgressIndicator {\n    pub fn new(enabled: bool) -> Self {\n        Self { enabled }\n    }\n    \n    /// Show progress for download/upload operations\n    pub fn show_progress(&self, _current: u64, _total: Option<u64>) {\n        if self.enabled {\n            // Implementation for progress bar would go here\n            // Could use indicatif crate for fancy progress bars\n        }\n    }\n}
+use std::fs::File;
+use std::io::{self, Write};
+use std::path::Path;
+
+/// Output writer that handles file vs stdout
+pub struct OutputWriter {
+    config: OutputConfig,
+}
+
+impl OutputWriter {
+    pub fn new(config: OutputConfig) -> Self {
+        Self { config }
+    }
+
+    /// Write content to configured output
+    pub fn write(&self, content: &str) -> Result<()> {
+        if let Some(file_path) = &self.config.file {
+            self.write_to_file(content, file_path)
+        } else {
+            self.write_to_stdout(content)
+        }
+    }
+
+    /// Write verbose information (if enabled)
+    pub fn write_verbose(&self, message: &str) -> Result<()> {
+        if self.config.verbose && !self.config.silent {
+            eprintln!("* {}", message);
+        }
+        Ok(())
+    }
+
+    /// Write error message
+    pub fn write_error(&self, message: &str) -> Result<()> {
+        if !self.config.silent {
+            eprintln!("rurl: error: {}", message);
+        }
+        Ok(())
+    }
+
+    fn write_to_file(&self, content: &str, file_path: &Path) -> Result<()> {
+        let mut file = File::create(file_path)?;
+        file.write_all(content.as_bytes())?;
+        Ok(())
+    }
+
+    fn write_to_stdout(&self, content: &str) -> Result<()> {
+        io::stdout().write_all(content.as_bytes())?;
+        Ok(())
+    }
+}
+
+/// Progress indicator for long-running operations
+pub struct ProgressIndicator {
+    enabled: bool,
+}
+
+impl ProgressIndicator {
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    /// Show progress for download/upload operations
+    pub fn show_progress(&self, _current: u64, _total: Option<u64>) {
+        if self.enabled {
+            // Implementation for progress bar would go here
+            // Could use indicatif crate for fancy progress bars
+        }
+    }
+}

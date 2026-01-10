@@ -2,13 +2,11 @@
 //!
 //! This module handles command-line argument parsing and application entry point.
 
-use crate::config::{Config, BrowserCookieConfig, HttpMethod, ProxyConfig, SslConfig, OutputConfig};
+use crate::config::{Config, BrowserCookieConfig, HttpMethod};
 use crate::error::{Result, RurlError};
 use crate::http::HttpClient;
 use crate::utils::{UrlUtils, StringUtils, FileUtils};
 use clap::{Arg, Command, ArgMatches};
-use std::collections::HashMap;
-use std::time::Duration;
 
 pub mod args;
 pub mod runner;

@@ -4,8 +4,7 @@
 
 use crate::config::{Config, HttpMethod};
 use crate::error::{Result, RurlError};
-use reqwest::{Client, ClientBuilder, Method, RequestBuilder};
-use std::time::Duration;
+use reqwest::{Client, ClientBuilder, Method};
 
 pub mod request;
 pub mod response;

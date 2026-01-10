@@ -17,14 +17,14 @@ pub struct Auth;
 impl Auth {
     /// Create basic auth header value
     pub fn basic_auth(username: &str, password: &str) -> String {
-        let credentials = format!(\"{}:{}\", username, password);
+        let credentials = format!("{}:{}", username, password);
         let encoded = base64::engine::general_purpose::STANDARD.encode(credentials.as_bytes());
-        format!(\"Basic {}\", encoded)
+        format!("Basic {}", encoded)
     }
     
     /// Create bearer token header value
     pub fn bearer_token(token: &str) -> String {
-        format!(\"Bearer {}\", token)
+        format!("Bearer {}", token)
     }
     
     /// Parse user:password format
@@ -33,4 +33,7 @@ impl Auth {
         match parts.as_slice() {
             [user, pass] => Ok((user.to_string(), pass.to_string())),
             [user] => Ok((user.to_string(), String::new())),
-            _ => Err(RurlError::Auth(\"Invalid user:password format\".to_string())),\n        }\n    }\n}
+            _ => Err(RurlError::Auth("Invalid user:password format".to_string())),
+        }
+    }
+}

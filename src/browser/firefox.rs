@@ -1,14 +1,10 @@
 //! Firefox browser cookie extraction
 
-use crate::config::BrowserCookieConfig;
 use crate::error::{Result, RurlError};
-use crate::browser::{Cookie, CookieStore};
+use crate::browser::CookieStore;
 
 /// Extract cookies from Firefox browser
-pub async fn extract_cookies(
-    config: &BrowserCookieConfig,
-    domain: Option<&str>,
-) -> Result<CookieStore> {
+pub async fn extract_cookies() -> Result<CookieStore> {
     // Implementation will access Firefox SQLite cookie database
     // This is a placeholder for the actual implementation
     Err(RurlError::Unsupported("Firefox cookie extraction not yet implemented".to_string()))

@@ -24,7 +24,7 @@ impl ResponseFormatter {
     
     fn is_json_content(&self, content_type: Option<&str>) -> bool {
         content_type
-            .map(|ct| ct.contains(\"application/json\"))
+            .map(|ct| ct.contains("application/json"))
             .unwrap_or(false)
     }
     

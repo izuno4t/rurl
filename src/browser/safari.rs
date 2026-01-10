@@ -1,14 +1,10 @@
 //! Safari browser cookie extraction (macOS only)
 
-use crate::config::BrowserCookieConfig;
 use crate::error::{Result, RurlError};
-use crate::browser::{Cookie, CookieStore};
+use crate::browser::CookieStore;
 
 /// Extract cookies from Safari browser
-pub async fn extract_cookies(
-    config: &BrowserCookieConfig,
-    domain: Option<&str>,
-) -> Result<CookieStore> {
+pub async fn extract_cookies() -> Result<CookieStore> {
     #[cfg(target_os = "macos")]
     {
         // Implementation will parse Safari's .binarycookies files

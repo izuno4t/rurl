@@ -7,4 +7,112 @@ use url::Url;
 /// URL validation and parsing utilities
 pub struct UrlUtils;
 
-impl UrlUtils {\n    /// Validate and normalize URL\n    pub fn validate_url(input: &str) -> Result<Url> {\n        // Add http:// if no scheme is provided\n        let url_str = if input.contains(\"://\") {\n            input.to_string()\n        } else {\n            format!(\"http://{}\", input)\n        };\n        \n        Url::parse(&url_str).map_err(|e| {\n            RurlError::InvalidUrl(format!(\"Invalid URL '{}': {}\", input, e))\n        })\n    }\n    \n    /// Extract domain from URL for cookie filtering\n    pub fn extract_domain(url: &Url) -> Option<String> {\n        url.domain().map(|d| d.to_string())\n    }\n}\n\n/// File system utilities\npub struct FileUtils;\n\nimpl FileUtils {\n    /// Expand tilde (~) in file paths\n    pub fn expand_path(path: &str) -> Result<PathBuf> {\n        if path.starts_with('~') {\n            if let Some(home_dir) = dirs::home_dir() {\n                Ok(home_dir.join(&path[2..]))\n            } else {\n                Err(RurlError::Config(\"Cannot determine home directory\".to_string()))\n            }\n        } else {\n            Ok(PathBuf::from(path))\n        }\n    }\n    \n    /// Check if file exists and is readable\n    pub fn check_file_readable(path: &Path) -> Result<()> {\n        if !path.exists() {\n            return Err(RurlError::FileNotFound(\n                format!(\"File not found: {:?}\", path)\n            ));\n        }\n        \n        if !path.is_file() {\n            return Err(RurlError::Config(\n                format!(\"Path is not a file: {:?}\", path)\n            ));\n        }\n        \n        // Check if readable (basic check)\n        std::fs::File::open(path).map_err(|e| {\n            RurlError::PermissionDenied(\n                format!(\"Cannot read file {:?}: {}\", path, e)\n            )\n        })?;\n        \n        Ok(())\n    }\n}\n\n/// String utilities\npub struct StringUtils;\n\nimpl StringUtils {\n    /// Parse key=value pairs from headers\n    pub fn parse_header(input: &str) -> Result<(String, String)> {\n        let parts: Vec<&str> = input.splitn(2, ':').collect();\n        match parts.as_slice() {\n            [key, value] => {\n                let key = key.trim().to_string();\n                let value = value.trim().to_string();\n                Ok((key, value))\n            }\n            _ => Err(RurlError::Config(\n                format!(\"Invalid header format: '{}'. Expected 'key: value'\", input)\n            )),\n        }\n    }\n    \n    /// Parse timeout values (supports suffixes like 's', 'm', 'h')\n    pub fn parse_timeout(input: &str) -> Result<std::time::Duration> {\n        if let Ok(seconds) = input.parse::<u64>() {\n            return Ok(std::time::Duration::from_secs(seconds));\n        }\n        \n        let (number_part, suffix) = if input.ends_with('s') {\n            (&input[..input.len()-1], 1)\n        } else if input.ends_with('m') {\n            (&input[..input.len()-1], 60)\n        } else if input.ends_with('h') {\n            (&input[..input.len()-1], 3600)\n        } else {\n            return Err(RurlError::Config(\n                format!(\"Invalid timeout format: '{}'. Use number with optional suffix (s/m/h)\", input)\n            ));\n        };\n        \n        let number: u64 = number_part.parse().map_err(|_| {\n            RurlError::Config(\n                format!(\"Invalid timeout number: '{}'\", number_part)\n            )\n        })?;\n        \n        Ok(std::time::Duration::from_secs(number * suffix))\n    }\n}
+impl UrlUtils {
+    /// Validate and normalize URL
+    pub fn validate_url(input: &str) -> Result<Url> {
+        // Add http:// if no scheme is provided
+        let url_str = if input.contains("://") {
+            input.to_string()
+        } else {
+            format!("http://{}", input)
+        };
+
+        Url::parse(&url_str).map_err(|e| {
+            RurlError::InvalidUrl(format!("Invalid URL '{}': {}", input, e))
+        })
+    }
+
+    /// Extract domain from URL for cookie filtering
+    pub fn extract_domain(url: &Url) -> Option<String> {
+        url.domain().map(|d| d.to_string())
+    }
+}
+
+/// File system utilities
+pub struct FileUtils;
+
+impl FileUtils {
+    /// Expand tilde (~) in file paths
+    pub fn expand_path(path: &str) -> Result<PathBuf> {
+        if path.starts_with('~') {
+            if let Some(home_dir) = dirs::home_dir() {
+                Ok(home_dir.join(&path[2..]))
+            } else {
+                Err(RurlError::Config("Cannot determine home directory".to_string()))
+            }
+        } else {
+            Ok(PathBuf::from(path))
+        }
+    }
+
+    /// Check if file exists and is readable
+    pub fn check_file_readable(path: &Path) -> Result<()> {
+        if !path.exists() {
+            return Err(RurlError::FileNotFound(format!(
+                "File not found: {:?}",
+                path
+            )));
+        }
+
+        if !path.is_file() {
+            return Err(RurlError::Config(format!(
+                "Path is not a file: {:?}",
+                path
+            )));
+        }
+
+        // Check if readable (basic check)
+        std::fs::File::open(path).map_err(|e| {
+            RurlError::PermissionDenied(format!("Cannot read file {:?}: {}", path, e))
+        })?;
+
+        Ok(())
+    }
+}
+
+/// String utilities
+pub struct StringUtils;
+
+impl StringUtils {
+    /// Parse key=value pairs from headers
+    pub fn parse_header(input: &str) -> Result<(String, String)> {
+        let parts: Vec<&str> = input.splitn(2, ':').collect();
+        match parts.as_slice() {
+            [key, value] => {
+                let key = key.trim().to_string();
+                let value = value.trim().to_string();
+                Ok((key, value))
+            }
+            _ => Err(RurlError::Config(format!(
+                "Invalid header format: '{}'. Expected 'key: value'",
+                input
+            ))),
+        }
+    }
+
+    /// Parse timeout values (supports suffixes like 's', 'm', 'h')
+    pub fn parse_timeout(input: &str) -> Result<std::time::Duration> {
+        if let Ok(seconds) = input.parse::<u64>() {
+            return Ok(std::time::Duration::from_secs(seconds));
+        }
+
+        let (number_part, suffix) = if input.ends_with('s') {
+            (&input[..input.len() - 1], 1)
+        } else if input.ends_with('m') {
+            (&input[..input.len() - 1], 60)
+        } else if input.ends_with('h') {
+            (&input[..input.len() - 1], 3600)
+        } else {
+            return Err(RurlError::Config(format!(
+                "Invalid timeout format: '{}'. Use number with optional suffix (s/m/h)",
+                input
+            )));
+        };
+
+        let number: u64 = number_part.parse().map_err(|_| {
+            RurlError::Config(format!("Invalid timeout number: '{}'", number_part))
+        })?;
+
+        Ok(std::time::Duration::from_secs(number * suffix))
+    }
+}

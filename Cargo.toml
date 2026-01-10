@@ -2,6 +2,7 @@
 name = "rurl"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.75"
 authors = ["rurl development team"]
 description = "A modern curl alternative written in Rust with browser cookie support"
 license = "MIT"
@@ -25,8 +26,8 @@ reqwest = { version = "0.11", features = [
 ] }
 tokio = { version = "1.0", features = ["full"] }
 
-# Browser cookie extraction
-rookie = "0.1"
+# Browser cookie extraction (will be integrated later)
+# rookie = "0.1"
 
 # Error handling
 anyhow = "1.0"

@@ -4,7 +4,7 @@
 //! across different operating systems.
 
 use crate::config::{Browser, BrowserCookieConfig};
-use crate::error::{Result, RurlError};
+use crate::error::Result;
 use std::collections::HashMap;
 
 pub mod chrome;
@@ -39,16 +39,16 @@ impl BrowserCookieExtractor {
     }
 
     /// Extract cookies for the specified domain
-    pub async fn extract_cookies(&self, domain: Option<&str>) -> Result<CookieStore> {
+    pub async fn extract_cookies(&self) -> Result<CookieStore> {
         match self.config.browser {
-            Browser::Chrome => chrome::extract_cookies(&self.config, domain).await,
-            Browser::Firefox => firefox::extract_cookies(&self.config, domain).await,
-            Browser::Safari => safari::extract_cookies(&self.config, domain).await,
-            Browser::Edge => edge::extract_cookies(&self.config, domain).await,
-            Browser::Brave => chrome::extract_cookies(&self.config, domain).await, // Brave uses Chrome base
-            Browser::Opera => chrome::extract_cookies(&self.config, domain).await, // Opera uses Chromium
-            Browser::Vivaldi => chrome::extract_cookies(&self.config, domain).await, // Vivaldi uses Chromium
-            Browser::Whale => chrome::extract_cookies(&self.config, domain).await, // Whale uses Chromium
+            Browser::Chrome => chrome::extract_cookies().await,
+            Browser::Firefox => firefox::extract_cookies().await,
+            Browser::Safari => safari::extract_cookies().await,
+            Browser::Edge => edge::extract_cookies().await,
+            Browser::Brave => chrome::extract_cookies().await, // Brave uses Chrome base
+            Browser::Opera => chrome::extract_cookies().await, // Opera uses Chromium
+            Browser::Vivaldi => chrome::extract_cookies().await, // Vivaldi uses Chromium
+            Browser::Whale => chrome::extract_cookies().await, // Whale uses Chromium
         }
     }
 
