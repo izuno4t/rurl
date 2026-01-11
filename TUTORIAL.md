@@ -1,6 +1,6 @@
-# rurl チュートリアル
+# rurl Tutorial
 
-## 基本
+## Basics
 
 ### GET
 
@@ -8,71 +8,71 @@
 rurl https://example.com
 ```
 
-### ヘッダーとクエリ
+### Headers and query
 
 ```bash
 rurl -H "Accept: application/json" "https://httpbin.org/get?foo=bar"
 ```
 
-### POST（JSON）
+### POST (JSON)
 
 ```bash
 rurl -X POST -H "Content-Type: application/json" -d '{"k":"v"}' https://httpbin.org/post
 ```
 
-## 認証
+## Authentication
 
-### Basic認証
+### Basic auth
 
 ```bash
 rurl -u user:pass https://example.com/private
 ```
 
-### ブラウザCookie
+### Browser cookies
 
 ```bash
 rurl --cookies-from-browser chrome https://example.com/profile
 rurl --cookies-from-browser firefox:Profile1 https://example.com/profile
 ```
 
-## リダイレクトとリトライ
+## Redirects and retries
 
 ```bash
-# リダイレクトを追跡
+# Follow redirects
 rurl -L https://example.com
 
-# リトライを設定
+# Retry failed requests
 rurl --retry 3 --retry-delay 2 https://flaky.example.com
 ```
 
-## プロキシとTLS
+## Proxy and TLS
 
 ```bash
-# HTTPプロキシ
+# HTTP proxy
 rurl -x http://proxy.local:8080 https://example.com
 
-# カスタムCA
+# Custom CA
 rurl --cacert /path/ca.pem https://example.com
 
-# 検証をスキップ（推奨しません）
+# Skip verification (not recommended)
 rurl -k https://example.com
 ```
 
-## 出力制御
+## Output control
 
 ```bash
-# レスポンスをファイルに保存
+# Save response to file
 rurl -o out.json https://example.com/data
 
-# ヘッダーも表示
+# Include response headers
 rurl -i https://example.com
 
-# JSON整形出力
+# Pretty-print JSON
 rurl --json https://httpbin.org/json
 ```
 
-## よく使うブラウザ構文
+## Common browser syntax
 
-- Chrome系: `--cookies-from-browser chrome[:Profile]`
-- Firefoxコンテナ: `--cookies-from-browser firefox:Profile::Container`
-- Linuxキーリング: `--cookies-from-browser chrome+KEYRING`
+- Chrome family: `--cookies-from-browser chrome[:Profile]`
+- Firefox container: `--cookies-from-browser firefox:Profile::Container`
+- Linux keyring: `--cookies-from-browser chrome+KEYRING`

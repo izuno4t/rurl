@@ -18,6 +18,9 @@ include = [
     "Cargo.lock",
     "README.md",
     "LICENSE",
+    "MANPAGE.md",
+    "TUTORIAL.md",
+    "MIGRATION_FROM_CURL.md",
     "docs/LOCAL_DEVELOPMENT.md",
     "docs/PACKAGING.md",
     "docs/PUBLISHING.md"
