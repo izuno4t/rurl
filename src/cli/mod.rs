@@ -346,8 +346,13 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
     // Configure proxy
     let proxy_user = matches.get_one::<String>("proxy-user");
     if let Some(proxy_url) = matches.get_one::<String>("proxy") {
+        let proxy_url = if proxy_url.contains("://") {
+            proxy_url.clone()
+        } else {
+            format!("http://{}", proxy_url)
+        };
         let mut proxy_config = ProxyConfig {
-            url: proxy_url.clone(),
+            url: proxy_url,
             username: None,
             password: None,
         };
