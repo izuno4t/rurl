@@ -139,7 +139,7 @@ impl OutputManager {
     }
 }
 
-struct ProgressReporter {
+pub struct ProgressReporter {
     enabled: bool,
     total: Option<u64>,
     last_update: Instant,
@@ -147,7 +147,7 @@ struct ProgressReporter {
 }
 
 impl ProgressReporter {
-    fn new(enabled: bool, total: Option<u64>) -> Self {
+    pub fn new(enabled: bool, total: Option<u64>) -> Self {
         Self {
             enabled,
             total,
@@ -156,7 +156,7 @@ impl ProgressReporter {
         }
     }
 
-    fn update(&mut self, current: u64) {
+    pub fn update(&mut self, current: u64) {
         if !self.enabled {
             return;
         }
@@ -168,14 +168,19 @@ impl ProgressReporter {
         eprint!("{}", progress_line(current, self.total));
     }
 
-    fn finish(&mut self, current: u64) {
+    pub fn finish(&mut self, current: u64) {
         if !self.enabled {
             return;
         }
         if !self.rendered {
             eprint!("{}", progress_line(current, self.total));
+            self.rendered = true;
         }
         eprintln!();
+    }
+
+    pub fn rendered(&self) -> bool {
+        self.rendered
     }
 }
 
@@ -249,7 +254,7 @@ fn http_version_label(version: reqwest::Version) -> &'static str {
 mod tests {
     use super::{
         decode_body_with_charset, extract_charset, format_response_headers, http_version_label,
-        progress_line, OutputWriter,
+        progress_line, OutputWriter, ProgressReporter,
     };
     use crate::config::OutputConfig;
     use encoding_rs::WINDOWS_1252;
@@ -282,9 +287,34 @@ mod tests {
     }
 
     #[test]
+    fn decode_body_with_charset_falls_back_on_unknown_charset() {
+        let body = vec![0xE3, 0x81, 0x82]; // "あ" in UTF-8
+        let decoded =
+            decode_body_with_charset(body, Some("text/plain; charset=unknown")).expect("decoded");
+        assert!(decoded.contains('あ'));
+    }
+
+    #[test]
     fn progress_line_formats_with_and_without_total() {
         assert_eq!(progress_line(5, None), "\r5 bytes");
         assert_eq!(progress_line(50, Some(100)), "\r50 / 100 bytes (50%)");
+        assert_eq!(progress_line(150, Some(100)), "\r150 / 100 bytes (100%)");
+    }
+
+    #[test]
+    fn progress_reporter_respects_rate_limit_and_finish() {
+        let mut reporter = ProgressReporter::new(true, Some(200));
+        reporter.update(50);
+        // Finish should render even if previous updates were skipped by rate limit
+        reporter.finish(200);
+        assert!(reporter.rendered());
+    }
+
+    #[test]
+    fn progress_reporter_renders_on_finish_without_updates() {
+        let mut reporter = ProgressReporter::new(true, Some(10));
+        reporter.finish(10);
+        assert!(reporter.rendered());
     }
 
     #[test]

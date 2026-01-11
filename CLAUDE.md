@@ -9,9 +9,9 @@ code in this repository.
 
 1. **Always review docs/WORKING_PRINCIPLES.md** and follow its standards
    throughout your work
-2. **Always check docs/TASK.md** to verify current task status and ensure
+2. **Always check docs/TASK-1.1.0.md** to verify current task status and ensure
    alignment with project state
-3. **If task status doesn't match actual work progress, update docs/TASK.md
+3. **If task status doesn't match actual work progress, update docs/TASK-1.1.0.md
    immediately** to maintain accuracy
 
 ## Project Overview
@@ -83,13 +83,13 @@ features, uncomment this dependency and integrate with the browser modules.
 ## Task Management
 
 The project follows a strict task-based development approach documented in
-`docs/TASK.md`. Key phases:
+`docs/TASK-1.1.0.md`. Key phases:
 
 1. **Phase 1**: Project foundation (T001-T004) - Currently in progress
 2. **Phase 2**: HTTP basic functionality (T005-T009)
 3. **Phase 3**: Browser cookie integration (T010-T018) - Core differentiator
 
-Always update task status in `docs/TASK.md` when working on features.
+Always update task status in `docs/TASK-1.1.0.md` when working on features.
 
 ## Working Principles
 

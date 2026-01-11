@@ -29,7 +29,7 @@ Follow these rules for all Git operations.
 ## Pull Requests
 
 - Open a PR from a topic branch and describe what changed and why.
-- Link related task IDs from `docs/TASK.md` when applicable.
+- Link related task IDs from `docs/TASK-1.1.0.md` when applicable.
 
 ## Sources
 

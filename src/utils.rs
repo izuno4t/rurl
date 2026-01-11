@@ -120,6 +120,7 @@ mod tests {
     use super::{FileUtils, StringUtils, UrlUtils};
     use crate::error::RurlError;
     use std::fs;
+    use std::path::PathBuf;
     use tempfile::tempdir;
     use url::Url;
 
@@ -134,6 +135,13 @@ mod tests {
     fn validate_url_rejects_invalid_input() {
         let err = UrlUtils::validate_url("http://").expect_err("invalid url");
         assert!(matches!(err, RurlError::InvalidUrl(_)));
+    }
+
+    #[test]
+    fn validate_url_accepts_https() {
+        let url = UrlUtils::validate_url("https://example.com/path").expect("valid url");
+        assert_eq!(url.scheme(), "https");
+        assert_eq!(url.path(), "/path");
     }
 
     #[test]
@@ -152,6 +160,12 @@ mod tests {
         let home = dirs::home_dir().expect("home dir");
         let path = FileUtils::expand_path("~/rurl-test").expect("expanded");
         assert_eq!(path, home.join("rurl-test"));
+    }
+
+    #[test]
+    fn expand_path_leaves_non_tilde_unchanged() {
+        let path = FileUtils::expand_path("/tmp/rurl").expect("expanded");
+        assert_eq!(path, PathBuf::from("/tmp/rurl"));
     }
 
     #[test]

@@ -78,10 +78,40 @@ mod tests {
         let config = SslConfig {
             verify_certs: true,
             ca_cert_file: Some(temp.path().join("missing.pem")),
-            client_cert_file: None,
-            client_key_file: None,
+            client_cert_file: Some(temp.path().join("client.pem")),
+            client_key_file: Some(temp.path().join("client.key")),
         };
         let err = SslUtils::validate_config(&config).expect_err("missing");
+        assert!(matches!(err, RurlError::FileNotFound(_)));
+    }
+
+    #[test]
+    fn validate_config_rejects_missing_client_key() {
+        let temp = tempdir().expect("tempdir");
+        let cert = temp.path().join("client.pem");
+        std::fs::write(&cert, "cert").expect("write cert");
+        let config = SslConfig {
+            verify_certs: true,
+            ca_cert_file: None,
+            client_cert_file: Some(cert),
+            client_key_file: Some(temp.path().join("absent.key")),
+        };
+        let err = SslUtils::validate_config(&config).expect_err("missing key");
+        assert!(matches!(err, RurlError::FileNotFound(_)));
+    }
+
+    #[test]
+    fn validate_config_rejects_missing_client_cert() {
+        let temp = tempdir().expect("tempdir");
+        let key = temp.path().join("client.key");
+        std::fs::write(&key, "key").expect("write key");
+        let config = SslConfig {
+            verify_certs: true,
+            ca_cert_file: None,
+            client_cert_file: Some(temp.path().join("absent.pem")),
+            client_key_file: Some(key),
+        };
+        let err = SslUtils::validate_config(&config).expect_err("missing cert");
         assert!(matches!(err, RurlError::FileNotFound(_)));
     }
 

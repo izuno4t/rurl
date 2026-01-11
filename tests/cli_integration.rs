@@ -3,6 +3,17 @@ use tempfile::tempdir;
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
+#[test]
+fn test_cli_help_succeeds() {
+    let output = cargo_bin_cmd!("rurl")
+        .arg("--help")
+        .output()
+        .expect("run rurl");
+    assert!(output.status.success(), "help should exit 0");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Usage"), "help should include usage text");
+}
+
 fn can_bind_localhost() -> bool {
     std::net::TcpListener::bind("127.0.0.1:0").is_ok()
 }

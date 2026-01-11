@@ -72,7 +72,7 @@ fn normalize_lang(value: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{localize_error, normalize_lang};
+    use super::{localize_error, normalize_lang, resolve_language};
     use crate::error::RurlError;
 
     #[test]
@@ -89,5 +89,15 @@ mod tests {
         let err = RurlError::InvalidUrl("detail".to_string());
         let message = localize_error(&err);
         assert!(message.contains("detail"));
+    }
+
+    #[test]
+    fn resolve_language_falls_back_to_en() {
+        // Ensure env vars don't interfere
+        for key in ["LC_ALL", "LC_MESSAGES", "LANG"] {
+            std::env::remove_var(key);
+        }
+        let lang = resolve_language();
+        assert_eq!(lang.to_string(), "en-US");
     }
 }
