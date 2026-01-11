@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Release Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: 1.92.0
+        components: rustfmt, clippy
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Verify (release)
+      run: make verify-release
+
+    - name: Security audit
+      run: cargo audit
+
+    - name: Package artifact (make dist)
+      run: make dist
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ matrix.os }}
+        path: dist/*.tar.gz
+
+  upload:
+    name: Upload Release Assets
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist-download
+
+    - name: Upload assets to release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        set -euo pipefail
+        shopt -s globstar nullglob
+        files=(dist-download/**/*.tar.gz)
+        if [ ${#files[@]} -eq 0 ]; then
+          echo "No artifacts found to upload."
+          exit 1
+        fi
+        for f in "${files[@]}"; do
+          gh release upload "${TAG}" "${f}" --clobber
+        done
