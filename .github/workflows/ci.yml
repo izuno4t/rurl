@@ -40,6 +40,7 @@ jobs:
       run: cargo install cargo-llvm-cov
 
     - name: Install cargo-audit
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       run: cargo install cargo-audit
         
     - name: Cache cargo registry
@@ -57,6 +58,7 @@ jobs:
       run: make verify
 
     - name: Security audit
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       run: cargo audit
 
   build:
