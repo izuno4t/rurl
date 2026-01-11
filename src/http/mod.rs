@@ -101,7 +101,7 @@ impl HttpClient {
         let mut current_url = Url::parse(&self.config.url).map_err(|e| {
             RurlError::InvalidUrl(format!("Invalid URL '{}': {}", self.config.url, e))
         })?;
-        let initial_origin = origin_key(&current_url);
+        let initial_origin = redirect_origin_key(&current_url);
         let mut current_method = self.config.method.clone();
         let mut current_data = self.config.data.clone();
         let mut redirects_followed = 0usize;
@@ -124,7 +124,7 @@ impl HttpClient {
                 HttpMethod::Patch => Method::PATCH,
                 HttpMethod::Trace => Method::TRACE,
             };
-            let same_origin = origin_key(&current_url) == initial_origin;
+            let same_origin = redirect_origin_key(&current_url) == initial_origin;
 
             let mut request = self.client.request(method, current_url.as_str());
 
@@ -257,12 +257,28 @@ fn is_sensitive_header(name: &str) -> bool {
     name.eq_ignore_ascii_case("authorization") || name.eq_ignore_ascii_case("cookie")
 }
 
-fn origin_key(url: &Url) -> (String, String, Option<u16>) {
-    (
-        url.scheme().to_string(),
-        url.host_str().unwrap_or_default().to_string(),
-        url.port_or_known_default(),
-    )
+fn redirect_origin_key(url: &Url) -> (String, Option<u16>) {
+    (url.host_str().unwrap_or_default().to_string(), url.port())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::redirect_origin_key;
+    use url::Url;
+
+    #[test]
+    fn redirect_origin_key_ignores_scheme() {
+        let http = Url::parse("http://example.com/path").expect("valid url");
+        let https = Url::parse("https://example.com/path").expect("valid url");
+        assert_eq!(redirect_origin_key(&http), redirect_origin_key(&https));
+    }
+
+    #[test]
+    fn redirect_origin_key_respects_explicit_port() {
+        let http = Url::parse("http://example.com:8080/path").expect("valid url");
+        let https = Url::parse("https://example.com:8443/path").expect("valid url");
+        assert_ne!(redirect_origin_key(&http), redirect_origin_key(&https));
+    }
 }
 
 fn write_verbose_request_headers(request: &reqwest::Request) {

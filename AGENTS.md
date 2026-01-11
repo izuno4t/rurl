@@ -101,3 +101,5 @@ Before marking work as complete, ensure `make all` succeeds locally.
 Define "normal" as the build passing locally.
 When modifying Markdown files, run `markdownlint` on the changed files.
 Do not ask for next steps; proceed with requested tasks until completion.
+After making code changes, always run verification (at minimum `cargo test`)
+and report the results before declaring completion.
