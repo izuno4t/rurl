@@ -41,6 +41,32 @@ make check
 make test
 ```
 
+### セットアップスクリプト
+
+開発に必要なツールは `setup.sh` でまとめて導入できます（`rust-toolchain.toml` の `channel` を使用します）：
+
+```bash
+./setup.sh
+```
+
+### テストカバレッジ計測（cargo-llvm-cov）
+
+ローカルでカバレッジを取得するには、`cargo-llvm-cov` をインストールします。
+
+```bash
+cargo install cargo-llvm-cov
+rustup component add llvm-tools-preview
+```
+
+カバレッジの取得は次のコマンドで実行できます：
+
+```bash
+make coverage
+```
+
+`make coverage` はHTMLレポートを生成してブラウザで開きます。
+`make verify` は `coverage-ci` を含み、ブラウザを開かないカバレッジ計測を実行します。
+
 ### 利用可能な操作
 
 - ファイル編集・作成

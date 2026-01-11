@@ -1,11 +1,25 @@
 //! HTTP response handling and formatting
 
 use crate::error::Result;
+use reqwest::header::HeaderMap;
+use reqwest::{StatusCode, Version};
 use serde_json::Value;
 
 /// Response formatter for different output formats
 pub struct ResponseFormatter {
     format_json: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResponseInfo {
+    pub version: Version,
+    pub status: StatusCode,
+    pub headers: HeaderMap,
+}
+
+pub struct ResponseHistory {
+    pub response: reqwest::Response,
+    pub chain: Vec<ResponseInfo>,
 }
 
 impl ResponseFormatter {
