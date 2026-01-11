@@ -1,15 +1,33 @@
 # Repository Guidelines
 
-## Mandatory Pre-Work Checks
+## Agent Execution Rules
 
-**Before starting any work:**
+### IMPORTANT - READ BEFORE STARTING ANY TASK
 
-1. **Always review docs/WORKING_PRINCIPLES.md** and follow its standards
-   throughout your work
-2. **Always check docs/TASK.md** to verify current task status and ensure
-   alignment with project state
-3. **If task status doesn't match actual work progress, update docs/TASK.md
-   immediately** to maintain accuracy
+This repository enforces common working principles and Rust coding conventions.
+Before performing any task, you MUST do the following:
+
+1. Read and understand:
+   - `WORKING_PRINCIPLES.md`
+   - `RUST_CODING_GUIDELINES.md`
+   - `docs/TASK.md`
+2. Confirm that your planned actions comply with these documents.
+3. If task status does not match actual progress, update `docs/TASK.md`
+   immediately to maintain accuracy.
+4. If a rule cannot be followed:
+   - Explicitly state **which rule**
+   - Explain **why**
+   - Describe **the impact**
+   - Obtain confirmation before proceeding.
+
+Do NOT:
+
+- Start implementation without a plan
+- Make assumptions without verification
+- Change public APIs without explicit instruction
+- Bypass rules silently
+
+Failure to follow these rules is considered incorrect task execution.
 
 ## Communication Language
 
