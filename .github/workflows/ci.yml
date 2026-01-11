@@ -2,9 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop, "feature/**", "claude/**" ]
+    branches: [ main, develop ]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Makefile"
   pull_request:
     branches: [ main, develop, "feature/**", "claude/**" ]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Makefile"
+  release:
+    types: [published]
 
 env:
   CARGO_TERM_COLOR: always
@@ -73,6 +87,7 @@ jobs:
     name: Release Build
     needs: basic-check
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' }}
     steps:
     - uses: actions/checkout@v4
     
@@ -93,5 +108,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
           
+    - name: Verify (fmt, clippy-all, check, test)
+      run: make verify-release
+      
     - name: Build release
       run: cargo build --release

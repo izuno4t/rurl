@@ -1,13 +1,13 @@
 //! Microsoft Edge browser cookie extraction
 
 use crate::browser::CookieStore;
-use crate::error::{Result, RurlError};
+use crate::config::BrowserCookieConfig;
+use crate::error::Result;
 
 /// Extract cookies from Microsoft Edge browser
-pub async fn extract_cookies() -> Result<CookieStore> {
-    // Edge uses Chromium base, so we can reuse Chrome logic with different paths
-    // This is a placeholder for the actual implementation
-    Err(RurlError::Unsupported(
-        "Edge cookie extraction not yet implemented".to_string(),
-    ))
+pub async fn extract_cookies(config: &BrowserCookieConfig) -> Result<CookieStore> {
+    crate::browser::chrome::extract_chromium_cookies(
+        crate::browser::chrome::ChromiumBrowser::Edge,
+        config,
+    )
 }

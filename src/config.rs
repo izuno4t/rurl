@@ -148,6 +148,7 @@ pub struct OutputConfig {
     pub silent: bool,
     pub show_progress: bool,
     pub format_json: bool,
+    pub include_headers: bool,
 }
 
 /// Main configuration struct
@@ -200,6 +201,7 @@ impl Default for Config {
                 silent: false,
                 show_progress: true,
                 format_json: false,
+                include_headers: false,
             },
             auth_username: None,
             auth_password: None,
