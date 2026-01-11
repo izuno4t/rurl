@@ -35,6 +35,9 @@ pub enum RurlError {
     #[error("Network timeout")]
     Timeout,
 
+    #[error("Redirect limit exceeded: {0}")]
+    RedirectLimitExceeded(usize),
+
     #[error("Permission denied: {0}")]
     PermissionDenied(String),
 

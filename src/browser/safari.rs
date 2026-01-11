@@ -145,10 +145,10 @@ mod macos {
         let expiration = parser.read_f64_le()?;
         let _creation = parser.read_f64_le()?;
 
-        let domain = read_cstring_at(data, domain_offset)?;
-        let name = read_cstring_at(data, name_offset)?;
-        let path = read_cstring_at(data, path_offset)?;
-        let value = read_cstring_at(data, value_offset)?;
+        let domain = read_null_terminated_string_at(data, domain_offset)?;
+        let name = read_null_terminated_string_at(data, name_offset)?;
+        let path = read_null_terminated_string_at(data, path_offset)?;
+        let value = read_null_terminated_string_at(data, value_offset)?;
 
         if domain.is_empty() || name.is_empty() {
             return Ok(None);
@@ -176,7 +176,7 @@ mod macos {
         }))
     }
 
-    fn read_cstring_at(data: &[u8], offset: usize) -> Result<String> {
+    fn read_null_terminated_string_at(data: &[u8], offset: usize) -> Result<String> {
         if offset >= data.len() {
             return Err(RurlError::BrowserCookie(
                 "Safari cookie offset out of bounds".to_string(),

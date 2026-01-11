@@ -11,36 +11,41 @@ A Modern curl Alternative Written in Rust
 
 ## What is rurl?
 
-rurl is a ground-up reimplementation of the classic curl command-line tool, built with Rust
-for the modern web ecosystem. While maintaining compatibility with curl's most commonly used
-features, rurl extends functionality with native browser integration, allowing you to leverage
-your existing browser sessions for authenticated API requests and web scraping.
+rurl is a ground-up reimplementation of the classic curl command-line tool,
+built with Rust for the modern web ecosystem. While maintaining compatibility
+with curl's most commonly used features, rurl extends functionality with native
+browser integration, allowing you to leverage your existing browser sessions for
+authenticated API requests and web scraping.
 
 ### Why rurl over curl?
 
-**🔒 Memory Safety**: Written in Rust, rurl eliminates entire classes of security vulnerabilities
-common in C programs, such as buffer overflows and use-after-free errors.
+**🔒 Memory Safety**: Written in Rust, rurl eliminates entire classes of
+security vulnerabilities common in C programs, such as buffer overflows and
+use-after-free errors.
 
-**🍪 Browser Integration**: Unlike curl, which requires manual cookie management, rurl can
-directly access cookies from your installed browsers (Chrome, Firefox, Safari, Edge, Brave),
-making authenticated requests trivial.
+**🍪 Browser Integration**: Unlike curl, which requires manual cookie
+management, rurl can directly access cookies from your installed browsers
+(Chrome, Firefox, Safari, Edge, Brave), making authenticated requests trivial.
 
-**⚡ Performance**: Leverages Rust's zero-cost abstractions and modern async/await patterns
-for optimal performance, especially for concurrent requests.
+**⚡ Performance**: Leverages Rust's zero-cost abstractions and modern
+async/await patterns for optimal performance, especially for concurrent
+requests.
 
-**🎯 Modern Defaults**: Sensible defaults for the modern web - automatic decompression,
-UTF-8 handling, and JSON pretty-printing out of the box.
+**🎯 Modern Defaults**: Sensible defaults for the modern web - automatic
+decompression, UTF-8 handling, and JSON pretty-printing out of the box.
 
-**🔧 Better Error Messages**: Clear, actionable error messages that tell you exactly what
-went wrong and how to fix it.
+**🔧 Better Error Messages**: Clear, actionable error messages that tell you
+exactly what went wrong and how to fix it.
 
 ### Philosophy
 
 rurl is designed around three core principles:
 
 1. **Compatibility First**: Common curl commands should "just work" in rurl
-2. **Safety by Default**: Memory safety and secure defaults without sacrificing performance
-3. **Browser-Native**: Treat browser cookies as first-class citizens, not an afterthought
+2. **Safety by Default**: Memory safety and secure defaults without sacrificing
+   performance
+3. **Browser-Native**: Treat browser cookies as first-class citizens, not an
+   afterthought
 
 ### Use Cases
 
@@ -59,7 +64,8 @@ rurl is designed around three core principles:
 
 ### Prerequisites
 
-- **Rust**: 1.92 or later (verified in CI; latest stable is recommended for local builds)
+- **Rust**: 1.92 or later (verified in CI; latest stable is recommended for
+  local builds)
 - **Git**: For cloning the repository
 
 ### Building from Source
@@ -95,9 +101,31 @@ cargo clippy --all-targets -- -D warnings
 cargo check
 ```
 
+### Setup
+
+Run the setup script to install local tooling (uses `rust-toolchain.toml`
+channel):
+
+```bash
+./setup.sh
+```
+
+### Coverage
+
+Local coverage requires `cargo-llvm-cov`:
+
+```bash
+cargo install cargo-llvm-cov
+rustup component add llvm-tools-preview
+make coverage
+```
+
+`make verify` also runs coverage via `coverage-ci`.
+
 **Local environment constraints**:
-If you are using an older Rust version (for example, 1.67.0), you will not be able to build
-locally. GitHub Actions is configured to automatically verify code quality and builds.
+If you are using an older Rust version (for example, 1.67.0), you will not be
+able to build locally. GitHub Actions is configured to automatically verify
+code quality and builds.
 
 ### **Man Page Synopsis**
 
@@ -109,22 +137,26 @@ SYNOPSIS
        rurl [options] [URL...]
 
 DESCRIPTION
-       rurl is a tool to transfer data from or to a server, using one of the supported protocols
-       (HTTP, HTTPS, FTP, FTPS, SMTP, and more). The command is designed to work without user
-       interaction and provides seamless integration with browser cookie stores.
+       rurl is a tool to transfer data from or to a server, using one of the
+       supported protocols (HTTP, HTTPS, FTP, FTPS, SMTP, and more). The
+       command is designed to work without user interaction and provides
+       seamless integration with browser cookie stores.
 
-       rurl offers a busload of useful tricks like proxy support, user authentication, FTP upload,
-       HTTP post, SSL connections, browser cookies, file transfer resume, and more. As you will
-       see below, the number of features will make your head spin!
+       rurl offers a busload of useful tricks like proxy support, user
+       authentication, FTP upload, HTTP post, SSL connections, browser
+       cookies, file transfer resume, and more. As you will see below, the
+       number of features will make your head spin!
 
-       rurl is powered by Rust and libcurl-rust, offering memory safety guarantees while maintaining
-       compatibility with curl's command-line interface.
+       rurl is powered by Rust and libcurl-rust, offering memory safety
+       guarantees while maintaining compatibility with curl's command-line
+       interface.
 
 OPTIONS
        Browser Cookie Integration:
        --cookies-from-browser BROWSER[+KEYRING][:PROFILE][::CONTAINER]
-              Extract cookies directly from installed browsers. Supported browsers include:
-              brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale.
+              Extract cookies directly from installed browsers. Supported
+              browsers include: brave, chrome, chromium, edge, firefox, opera,
+              safari, vivaldi, whale.
 
               Examples:
               firefox               - Use default Firefox profile
@@ -221,10 +253,13 @@ EXAMPLES
        rurl --cookies-from-browser firefox::Personal https://site.com
 
        POST request with browser authentication:
-       rurl --cookies-from-browser chrome -X POST -H "Content-Type: application/json" -d '{"key":"value"}' https://api.example.com/submit
+       rurl --cookies-from-browser chrome -X POST -H \
+       "Content-Type: application/json" -d '{"key":"value"}' \
+       https://api.example.com/submit
 
        Use proxy with authentication:
-       rurl --proxy http://proxy.company.com:8080 --proxy-user user:pass https://external-api.com
+       rurl --proxy http://proxy.company.com:8080 --proxy-user user:pass \
+       https://external-api.com
 
        Custom CA certificate:
        rurl --cacert /path/to/ca-bundle.pem https://self-signed-site.com

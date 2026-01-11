@@ -22,6 +22,15 @@ responses in Japanese.
   behavior and align with it.
 - If it remains unclear after confirmation, ask for a decision before
   proceeding.
+- Spec alignment is based on curl; yt-dlp is for implementation reference only.
+- Rationale: users are accustomed to curl behavior, so compatibility is prioritized.
+Do not ask whether to align with curl. Only ask when there is a concrete reason
+or unavoidable ambiguity that requires a decision.
+
+Reference sources:
+
+- <https://github.com/curl/curl>
+- <https://github.com/yt-dlp/yt-dlp>
 
 ## Clippy Policy
 
@@ -89,3 +98,6 @@ Rust is older, rely on CI for build/test verification.
 ## Completion Check
 
 Before marking work as complete, ensure `make all` succeeds locally.
+Define "normal" as the build passing locally.
+When modifying Markdown files, run `markdownlint` on the changed files.
+Do not ask for next steps; proceed with requested tasks until completion.

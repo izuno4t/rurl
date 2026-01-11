@@ -45,21 +45,26 @@ fn run_with_args(matches: &ArgMatches) -> Result<()> {
         let output = OutputWriter::new(output_config);
 
         let client = HttpClient::new(config)?;
-        let response = client.execute().await?;
+        let response_history = client.execute_with_history().await?;
+        let response = response_history.response;
 
-        let status = response.status();
-        let version = response.version();
-        let headers = response.headers().clone();
         let body = response.text().await.map_err(RurlError::Http)?;
 
         if verbose && !silent {
-            write_verbose_headers(version, status, &headers);
+            for info in &response_history.chain {
+                write_verbose_headers(info.version, info.status, &info.headers);
+            }
         }
 
         if include_headers {
-            let header_block = format_response_headers(version, status, &headers);
-            let mut combined = String::with_capacity(header_block.len() + body.len());
-            combined.push_str(&header_block);
+            let mut combined = String::new();
+            for info in &response_history.chain {
+                combined.push_str(&format_response_headers(
+                    info.version,
+                    info.status,
+                    &info.headers,
+                ));
+            }
             combined.push_str(&body);
             output.write(&combined)?;
         } else {
@@ -85,8 +90,7 @@ fn create_app() -> Command {
                 .short('X')
                 .long("request")
                 .value_name("METHOD")
-                .help("HTTP request method")
-                .default_value("GET"),
+                .help("HTTP request method"),
         )
         .arg(
             Arg::new("header")
@@ -165,6 +169,12 @@ fn create_app() -> Command {
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
+            Arg::new("location-trusted")
+                .long("location-trusted")
+                .help("Follow redirects and send credentials to other hosts")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("include")
                 .short('i')
                 .long("include")
@@ -175,7 +185,25 @@ fn create_app() -> Command {
             Arg::new("max-redirs")
                 .long("max-redirs")
                 .value_name("NUMBER")
-                .help("Maximum number of redirects to follow"),
+                .help("Maximum number of redirects to follow (-1 for unlimited)"),
+        )
+        .arg(
+            Arg::new("post301")
+                .long("post301")
+                .help("Do not switch POST to GET after 301")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("post302")
+                .long("post302")
+                .help("Do not switch POST to GET after 302")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("post303")
+                .long("post303")
+                .help("Do not switch POST to GET after 303")
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("user-agent")
@@ -284,6 +312,7 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
         config.method = method_str
             .parse::<HttpMethod>()
             .map_err(|_| RurlError::Config(format!("Unknown HTTP method: {}", method_str)))?;
+        config.request_method_explicit = true;
     }
 
     // Parse headers
@@ -297,6 +326,9 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
     // Parse data
     if let Some(data) = matches.get_one::<String>("data") {
         config.data = Some(data.clone());
+    }
+    if !config.request_method_explicit && config.data.is_some() {
+        config.method = HttpMethod::Post;
     }
 
     // Parse browser cookies
@@ -350,10 +382,28 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
 
     // Configure redirects
     config.follow_redirects = matches.get_flag("location");
+    config.location_trusted = matches.get_flag("location-trusted");
+    if config.location_trusted {
+        config.follow_redirects = true;
+    }
+    config.post301 = matches.get_flag("post301");
+    config.post302 = matches.get_flag("post302");
+    config.post303 = matches.get_flag("post303");
     if let Some(max_redirs_str) = matches.get_one::<String>("max-redirs") {
-        config.max_redirects = max_redirs_str.parse::<u32>().map_err(|_| {
-            RurlError::Config(format!("Invalid max-redirs value: {}", max_redirs_str))
-        })?;
+        if max_redirs_str.trim() == "-1" {
+            config.max_redirects = None;
+        } else {
+            let value = max_redirs_str.parse::<i64>().map_err(|_| {
+                RurlError::Config(format!("Invalid max-redirs value: {}", max_redirs_str))
+            })?;
+            if value < 0 {
+                return Err(RurlError::Config(format!(
+                    "Invalid max-redirs value: {}",
+                    max_redirs_str
+                )));
+            }
+            config.max_redirects = Some(value as usize);
+        }
     }
 
     // Configure SSL
