@@ -406,8 +406,11 @@ fn decrypt_aes_gcm(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             "Invalid AES-GCM ciphertext length".to_string(),
         ));
     }
-    let (nonce, payload) = ciphertext.split_at(AES_GCM_NONCE_LEN);
-    let nonce = aes_gcm::Nonce::clone_from_slice(nonce);
+    let (nonce_bytes, payload) = ciphertext.split_at(AES_GCM_NONCE_LEN);
+    let nonce_array: [u8; AES_GCM_NONCE_LEN] = nonce_bytes
+        .try_into()
+        .map_err(|_| RurlError::BrowserCookie("Invalid nonce length".to_string()))?;
+    let nonce = aes_gcm::Nonce::from(nonce_array);
     let cipher = Aes256Gcm::new_from_slice(key)
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to create AES-GCM cipher: {}", e)))?;
     cipher
