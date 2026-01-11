@@ -270,9 +270,7 @@ mod macos {
         let value: String = row
             .get(2)
             .map_err(|e| RurlError::BrowserCookie(format!("Failed to read cookie value: {}", e)))?;
-        let encrypted_value: Vec<u8> = row.get(3).map_err(|e| {
-            RurlError::BrowserCookie(format!("Failed to read cookie ciphertext: {}", e))
-        })?;
+        let encrypted_value = read_encrypted_value(row)?;
         let path: String = row
             .get(4)
             .map_err(|e| RurlError::BrowserCookie(format!("Failed to read cookie path: {}", e)))?;
@@ -312,6 +310,20 @@ mod macos {
             http_only: http_only != 0,
             expires,
         }))
+    }
+
+    fn read_encrypted_value(row: &Row<'_>) -> Result<Vec<u8>> {
+        let value = row.get_ref(3).map_err(|e| {
+            RurlError::BrowserCookie(format!("Failed to read cookie ciphertext: {}", e))
+        })?;
+        match value {
+            rusqlite::types::ValueRef::Blob(bytes) => Ok(bytes.to_vec()),
+            rusqlite::types::ValueRef::Text(text) => Ok(text.to_vec()),
+            rusqlite::types::ValueRef::Null => Ok(Vec::new()),
+            _ => Err(RurlError::BrowserCookie(
+                "Unsupported cookie ciphertext type".to_string(),
+            )),
+        }
     }
 
     struct MacChromeCookieDecryptor {

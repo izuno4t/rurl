@@ -16,6 +16,13 @@
 Use English for reading project documents, but keep all interaction and
 responses in Japanese.
 
+## Specification Alignment
+
+- When choosing between specifications or behaviors, confirm curl or yt-dlp
+  behavior and align with it.
+- If it remains unclear after confirmation, ask for a decision before
+  proceeding.
+
 ## Project Structure & Module Organization
 
 - `src/`: Rust crate source. Entry points are `src/main.rs` (CLI) and

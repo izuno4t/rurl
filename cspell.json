@@ -21,6 +21,7 @@
     "curl",
     "httpmock",
     "macos",
+    "PMBOK",
     "redirs",
     "reimplementation",
     "reqwest",

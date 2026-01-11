@@ -2,9 +2,11 @@
 //!
 //! This module provides the core HTTP/HTTPS client functionality.
 
+use crate::browser::BrowserCookieExtractor;
 use crate::config::{Config, HttpMethod};
 use crate::error::{Result, RurlError};
 use reqwest::{Client, ClientBuilder, Method};
+use url::Url;
 
 pub mod auth;
 pub mod request;
@@ -91,6 +93,70 @@ impl HttpClient {
             request = request.body(data.clone());
         }
 
-        request.send().await.map_err(RurlError::Http)
+        if let Some(browser_config) = &self.config.browser_cookies {
+            let extractor = BrowserCookieExtractor::new(browser_config.clone());
+            let store = extractor.extract_cookies().await?;
+            let url = Url::parse(&self.config.url).map_err(|e| {
+                RurlError::InvalidUrl(format!("Invalid URL '{}': {}", self.config.url, e))
+            })?;
+            let cookies = extractor.cookies_for_url(&store, &url);
+            if !cookies.is_empty() {
+                let mut header_value = extractor.cookies_to_header(&cookies);
+                if let Some(existing) = find_cookie_header(&self.config.headers) {
+                    header_value = format!("{}; {}", existing, header_value);
+                }
+                request = request.header("Cookie", header_value);
+            }
+        }
+
+        let request = request.build().map_err(RurlError::Http)?;
+
+        if self.config.output.verbose && !self.config.output.silent {
+            write_verbose_request_headers(&request);
+        }
+
+        self.client.execute(request).await.map_err(RurlError::Http)
+    }
+}
+
+fn find_cookie_header(headers: &std::collections::HashMap<String, String>) -> Option<String> {
+    for (key, value) in headers {
+        if key.eq_ignore_ascii_case("cookie") {
+            return Some(value.clone());
+        }
+    }
+    None
+}
+
+fn write_verbose_request_headers(request: &reqwest::Request) {
+    let url = request.url();
+    let path = request_path(url);
+    eprintln!("> {} {}", request.method(), path);
+
+    if let Some(host_value) = request.headers().get("host") {
+        let host = host_value.to_str().unwrap_or("<non-utf8>");
+        eprintln!("> Host: {}", host);
+    } else if let Some(host) = url.host_str() {
+        let host = match url.port() {
+            Some(port) => format!("{}:{}", host, port),
+            None => host.to_string(),
+        };
+        eprintln!("> Host: {}", host);
+    }
+
+    for (name, value) in request.headers().iter() {
+        if name.as_str().eq_ignore_ascii_case("host") {
+            continue;
+        }
+        let value = value.to_str().unwrap_or("<non-utf8>");
+        eprintln!("> {}: {}", name, value);
+    }
+    eprintln!(">");
+}
+
+fn request_path(url: &Url) -> String {
+    match url[url::Position::BeforePath..].trim() {
+        "" => "/".to_string(),
+        path => path.to_string(),
     }
 }

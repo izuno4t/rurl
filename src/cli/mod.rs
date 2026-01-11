@@ -5,6 +5,7 @@
 use crate::config::{BrowserCookieConfig, Config, HttpMethod, ProxyConfig};
 use crate::error::{Result, RurlError};
 use crate::http::HttpClient;
+use crate::output::OutputWriter;
 use crate::utils::{FileUtils, StringUtils, UrlUtils};
 use clap::{Arg, ArgMatches, Command};
 use log::{error, info};
@@ -37,13 +38,33 @@ fn run_with_args(matches: &ArgMatches) -> Result<()> {
         .map_err(|e| RurlError::Config(format!("Failed to create async runtime: {}", e)))?;
 
     rt.block_on(async {
+        let output_config = config.output.clone();
+        let include_headers = output_config.include_headers;
+        let verbose = output_config.verbose;
+        let silent = output_config.silent;
+        let output = OutputWriter::new(output_config);
+
         let client = HttpClient::new(config)?;
         let response = client.execute().await?;
 
-        // Handle response output
+        let status = response.status();
+        let version = response.version();
+        let headers = response.headers().clone();
         let body = response.text().await.map_err(RurlError::Http)?;
 
-        println!("{}", body);
+        if verbose && !silent {
+            write_verbose_headers(version, status, &headers);
+        }
+
+        if include_headers {
+            let header_block = format_response_headers(version, status, &headers);
+            let mut combined = String::with_capacity(header_block.len() + body.len());
+            combined.push_str(&header_block);
+            combined.push_str(&body);
+            output.write(&combined)?;
+        } else {
+            output.write(&body)?;
+        }
         Ok(())
     })
 }
@@ -144,6 +165,13 @@ fn create_app() -> Command {
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
+            Arg::new("include")
+                .short('i')
+                .long("include")
+                .help("Include response headers in output")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("max-redirs")
                 .long("max-redirs")
                 .value_name("NUMBER")
@@ -200,6 +228,45 @@ fn create_app() -> Command {
                 .value_name("FILE")
                 .help("Private key file"),
         )
+}
+
+fn format_response_headers(
+    version: reqwest::Version,
+    status: reqwest::StatusCode,
+    headers: &reqwest::header::HeaderMap,
+) -> String {
+    let mut output = String::new();
+    output.push_str(&format!("{} {}\n", http_version_label(version), status));
+    for (name, value) in headers.iter() {
+        let value = value.to_str().unwrap_or("<non-utf8>");
+        output.push_str(&format!("{}: {}\n", name, value));
+    }
+    output.push('\n');
+    output
+}
+
+fn write_verbose_headers(
+    version: reqwest::Version,
+    status: reqwest::StatusCode,
+    headers: &reqwest::header::HeaderMap,
+) {
+    eprintln!("< {} {}", http_version_label(version), status);
+    for (name, value) in headers.iter() {
+        let value = value.to_str().unwrap_or("<non-utf8>");
+        eprintln!("< {}: {}", name, value);
+    }
+    eprintln!("<");
+}
+
+fn http_version_label(version: reqwest::Version) -> &'static str {
+    match version {
+        reqwest::Version::HTTP_09 => "HTTP/0.9",
+        reqwest::Version::HTTP_10 => "HTTP/1.0",
+        reqwest::Version::HTTP_11 => "HTTP/1.1",
+        reqwest::Version::HTTP_2 => "HTTP/2",
+        reqwest::Version::HTTP_3 => "HTTP/3",
+        _ => "HTTP/1.1",
+    }
 }
 
 /// Build configuration from command line arguments
@@ -275,6 +342,7 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
     // Configure output
     config.output.verbose = matches.get_flag("verbose");
     config.output.silent = matches.get_flag("silent");
+    config.output.include_headers = matches.get_flag("include");
 
     if let Some(output_file) = matches.get_one::<String>("output") {
         config.output.file = Some(FileUtils::expand_path(output_file)?);

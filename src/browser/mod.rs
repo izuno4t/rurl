@@ -6,6 +6,8 @@
 use crate::config::{Browser, BrowserCookieConfig};
 use crate::error::Result;
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
+use url::Url;
 
 pub mod chrome;
 pub mod edge;
@@ -68,4 +70,79 @@ impl BrowserCookieExtractor {
             .collect::<Vec<_>>()
             .join("; ")
     }
+
+    /// Filter cookies for a specific URL using standard matching rules
+    pub fn cookies_for_url(&self, store: &CookieStore, url: &Url) -> Vec<Cookie> {
+        let host = match url.host_str() {
+            Some(host) => host.to_lowercase(),
+            None => return Vec::new(),
+        };
+        let path = url.path();
+        let is_https = url.scheme() == "https";
+        let now = unix_timestamp_seconds();
+
+        let mut matched = Vec::new();
+        for cookies in store.values() {
+            for cookie in cookies {
+                if cookie.secure && !is_https {
+                    continue;
+                }
+                if is_expired(cookie.expires, now) {
+                    continue;
+                }
+                if !domain_matches(&host, &cookie.domain) {
+                    continue;
+                }
+                if !path_matches(path, &cookie.path) {
+                    continue;
+                }
+                matched.push(cookie.clone());
+            }
+        }
+        matched
+    }
+}
+
+fn unix_timestamp_seconds() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+fn is_expired(expires: Option<i64>, now: i64) -> bool {
+    let expires = match expires {
+        Some(expires) => expires,
+        None => return false,
+    };
+    if expires > 100_000_000_000 {
+        return false;
+    }
+    expires <= now
+}
+
+fn domain_matches(host: &str, cookie_domain: &str) -> bool {
+    let cookie_domain = cookie_domain.trim().trim_start_matches('.').to_lowercase();
+    if cookie_domain.is_empty() {
+        return false;
+    }
+    if host == cookie_domain {
+        return true;
+    }
+    host.ends_with(&format!(".{}", cookie_domain))
+}
+
+fn path_matches(request_path: &str, cookie_path: &str) -> bool {
+    let cookie_path = if cookie_path.is_empty() {
+        "/"
+    } else {
+        cookie_path
+    };
+    if request_path == cookie_path {
+        return true;
+    }
+    if !request_path.starts_with(cookie_path) {
+        return false;
+    }
+    cookie_path.ends_with('/') || request_path[cookie_path.len()..].starts_with('/')
 }
