@@ -158,5 +158,5 @@ jobs:
     - name: Verify (fmt, clippy-all, check, test)
       run: make verify-release
       
-    - name: Build release
-      run: cargo build --release
+    - name: Package release artifact
+      run: make dist

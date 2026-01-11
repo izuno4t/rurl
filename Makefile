@@ -43,7 +43,7 @@ coverage:
 coverage-ci:
 	rustup run $(TOOLCHAIN) cargo llvm-cov --bins --tests --workspace --ignore-filename-regex '(^.*/rustc-.*|^.*/lib/rustlib/.*)'
 
-dist:
+dist: dist-clean
 	cargo build --release
 	rm -rf $(PACKAGE_BASENAME) $(PACKAGE_BASENAME).tar.gz
 	mkdir -p $(PACKAGE_BASENAME)
