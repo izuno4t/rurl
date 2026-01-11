@@ -1,6 +1,6 @@
-#[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use rurl::browser::BrowserCookieExtractor;
-#[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use rurl::config::{Browser, BrowserCookieConfig};
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 use rurl::error::RurlError;
