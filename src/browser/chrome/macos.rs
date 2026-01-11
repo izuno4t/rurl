@@ -20,6 +20,7 @@ const KEY_DERIVE_SALT: &[u8] = b"saltysalt";
 const KEY_DERIVE_ITERATIONS: u32 = 1003;
 const KEY_LENGTH: usize = 16;
 const AES_IV: &[u8; 16] = b"                ";
+const ERR_SEC_AUTH_FAILED: i32 = -25293;
 
 struct ChromiumSettings {
     user_data_dir: PathBuf,
@@ -38,8 +39,9 @@ pub fn extract_chromium_cookies(
     let temp_dir = tempdir()
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to create temp dir: {}", e)))?;
     let temp_db = temp_dir.path().join("chromium-cookies.sqlite");
-    fs::copy(&cookie_db, &temp_db)
-        .map_err(|e| RurlError::BrowserCookie(format!("Failed to copy cookies DB: {}", e)))?;
+    fs::copy(&cookie_db, &temp_db).map_err(|e| {
+        crate::browser::map_cookie_io_error("Failed to copy cookies DB", &cookie_db, e, None)
+    })?;
 
     let conn = Connection::open(&temp_db)
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to open cookies DB: {}", e)))?;
@@ -300,6 +302,12 @@ impl MacChromeCookieDecryptor {
         let password = match get_generic_password(&service, settings.keychain_account) {
             Ok(password) => Some(password),
             Err(err) => {
+                if err.code() == ERR_SEC_AUTH_FAILED {
+                    return Err(RurlError::PermissionDenied(format!(
+                        "Keychain access denied for {}",
+                        settings.keychain_account
+                    )));
+                }
                 log::warn!(
                     "Failed to read keychain password for {}: {}",
                     settings.keychain_account,

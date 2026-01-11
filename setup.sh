@@ -28,6 +28,11 @@ fi
 echo "Installing llvm-tools-preview for toolchain ${toolchain}..."
 rustup component add llvm-tools-preview --toolchain "${toolchain}"
 
+if [ -n "${CROSS_TARGETS:-}" ]; then
+  echo "Installing cross-compilation targets: ${CROSS_TARGETS}"
+  rustup target add --toolchain "${toolchain}" ${CROSS_TARGETS}
+fi
+
 if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
   echo "Installing cargo-llvm-cov..."
   cargo install cargo-llvm-cov

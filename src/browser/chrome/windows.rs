@@ -40,8 +40,14 @@ pub fn extract_chromium_cookies(
     let temp_dir = tempdir()
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to create temp dir: {}", e)))?;
     let temp_db = temp_dir.path().join("chromium-cookies.sqlite");
-    fs::copy(&cookie_db, &temp_db)
-        .map_err(|e| RurlError::BrowserCookie(format!("Failed to copy cookies DB: {}", e)))?;
+    fs::copy(&cookie_db, &temp_db).map_err(|e| {
+        crate::browser::map_cookie_io_error(
+            "Failed to copy cookies DB",
+            &cookie_db,
+            e,
+            Some("Close the browser or run without elevation."),
+        )
+    })?;
 
     let conn = Connection::open(&temp_db)
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to open cookies DB: {}", e)))?;
@@ -317,7 +323,7 @@ struct WindowsChromeCookieDecryptor {
 
 impl WindowsChromeCookieDecryptor {
     fn new(settings: &ChromiumSettings, meta_version: i64) -> Result<Self> {
-        let v10_key = read_windows_v10_key(&settings.user_data_dir);
+        let v10_key = read_windows_v10_key(&settings.user_data_dir)?;
         Ok(Self {
             v10_key,
             meta_version,
@@ -349,21 +355,41 @@ fn decode_cookie_value(value: &[u8], meta_version: i64) -> Option<String> {
     String::from_utf8(trimmed.to_vec()).ok()
 }
 
-fn read_windows_v10_key(browser_root: &Path) -> Option<Vec<u8>> {
-    let candidates = find_files(browser_root, "Local State").ok()?;
-    let local_state_path = newest_path(candidates)?;
-    let data = fs::read_to_string(&local_state_path).ok()?;
-    let json: serde_json::Value = serde_json::from_str(&data).ok()?;
+fn read_windows_v10_key(browser_root: &Path) -> Result<Option<Vec<u8>>> {
+    let candidates = match find_files(browser_root, "Local State") {
+        Ok(candidates) => candidates,
+        Err(_) => return Ok(None),
+    };
+    let local_state_path = match newest_path(candidates) {
+        Some(path) => path,
+        None => return Ok(None),
+    };
+    let data = fs::read_to_string(&local_state_path).map_err(|e| {
+        crate::browser::map_cookie_io_error(
+            "Failed to read Local State",
+            &local_state_path,
+            e,
+            Some("Close the browser or run without elevation."),
+        )
+    })?;
+    let json: serde_json::Value = match serde_json::from_str(&data) {
+        Ok(value) => value,
+        Err(_) => return Ok(None),
+    };
     let encrypted_key = json
         .get("os_crypt")
         .and_then(|value| value.get("encrypted_key"))
-        .and_then(|value| value.as_str())?;
+        .and_then(|value| value.as_str());
+    let encrypted_key = match encrypted_key {
+        Some(key) => key,
+        None => return Ok(None),
+    };
     let encrypted_bytes = STANDARD.decode(encrypted_key).ok()?;
     if !encrypted_bytes.starts_with(WINDOWS_DPAPI_PREFIX) {
         log::warn!("Invalid DPAPI prefix in Local State");
-        return None;
+        return Ok(None);
     }
-    decrypt_windows_dpapi(&encrypted_bytes[WINDOWS_DPAPI_PREFIX.len()..]).ok()
+    Ok(decrypt_windows_dpapi(&encrypted_bytes[WINDOWS_DPAPI_PREFIX.len()..]).ok())
 }
 
 fn decrypt_aes_gcm(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
