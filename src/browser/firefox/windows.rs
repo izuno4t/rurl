@@ -20,8 +20,14 @@ pub fn extract_cookies(config: &BrowserCookieConfig) -> Result<CookieStore> {
     let temp_dir = tempdir()
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to create temp dir: {}", e)))?;
     let temp_db = temp_dir.path().join("firefox-cookies.sqlite");
-    fs::copy(&cookie_db, &temp_db)
-        .map_err(|e| RurlError::BrowserCookie(format!("Failed to copy cookies DB: {}", e)))?;
+    fs::copy(&cookie_db, &temp_db).map_err(|e| {
+        crate::browser::map_cookie_io_error(
+            "Failed to copy cookies DB",
+            &cookie_db,
+            e,
+            Some("Close the browser or run without elevation."),
+        )
+    })?;
 
     let conn = Connection::open(&temp_db)
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to open cookies DB: {}", e)))?;
@@ -290,8 +296,14 @@ fn resolve_container(
         ));
     }
 
-    let data = fs::read_to_string(&containers_path)
-        .map_err(|e| RurlError::BrowserCookie(format!("Failed to read containers.json: {}", e)))?;
+    let data = fs::read_to_string(&containers_path).map_err(|e| {
+        crate::browser::map_cookie_io_error(
+            "Failed to read containers.json",
+            &containers_path,
+            e,
+            Some("Close the browser or run without elevation."),
+        )
+    })?;
     let value: Value = serde_json::from_str(&data)?;
     let identities = value
         .get("identities")

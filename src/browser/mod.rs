@@ -6,6 +6,7 @@
 use crate::config::{Browser, BrowserCookieConfig};
 use crate::error::Result;
 use std::collections::HashMap;
+use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use url::Url;
 
@@ -100,6 +101,24 @@ impl BrowserCookieExtractor {
             }
         }
         matched
+    }
+}
+
+pub(crate) fn map_cookie_io_error(
+    context: &str,
+    path: &Path,
+    err: std::io::Error,
+    permission_hint: Option<&str>,
+) -> crate::error::RurlError {
+    if err.kind() == std::io::ErrorKind::PermissionDenied {
+        let detail = if let Some(hint) = permission_hint {
+            format!("{context}: {:?}. {}", path, hint)
+        } else {
+            format!("{context}: {:?}", path)
+        };
+        crate::error::RurlError::PermissionDenied(detail)
+    } else {
+        crate::error::RurlError::BrowserCookie(format!("{context}: {:?}: {}", path, err))
     }
 }
 

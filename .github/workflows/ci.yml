@@ -88,6 +88,18 @@ jobs:
     - name: Test build
       run: cargo test --verbose
 
+    - name: Install cross linker (Windows GNU)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt-get update && sudo apt-get install -y mingw-w64
+
+    - name: Add cross targets (Windows GNU)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: rustup target add x86_64-pc-windows-gnu
+
+    - name: Cross build (Windows GNU)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: cargo build --target x86_64-pc-windows-gnu --verbose
+
   audit:
     name: Security Audit (Linux)
     needs: quality
