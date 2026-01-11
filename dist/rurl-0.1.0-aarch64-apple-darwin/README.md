@@ -125,10 +125,6 @@ make coverage
 `make dist` creates `dist/rurl-<version>-<host-target>.tar.gz` with the release
 binary and basic docs.
 
-### Publishing (crates.io)
-
-crates.io への公開手順は `docs/PUBLISHING.md` を参照してください。
-
 **Local environment constraints**:
 If you are using an older Rust version (for example, 1.67.0), you will not be
 able to build locally. GitHub Actions is configured to automatically verify
