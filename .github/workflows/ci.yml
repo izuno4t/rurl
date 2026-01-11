@@ -41,7 +41,10 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: 1.92.0
-        components: rustfmt, clippy
+        components: rustfmt, clippy, llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
         
     - name: Cache cargo registry
       uses: actions/cache@v3
