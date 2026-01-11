@@ -5,6 +5,7 @@
 use crate::browser::BrowserCookieExtractor;
 use crate::config::{Config, HttpMethod};
 use crate::error::{Result, RurlError};
+use crate::utils::FileUtils;
 use reqwest::header::{LOCATION, RETRY_AFTER};
 use reqwest::{Client, ClientBuilder, Method};
 use std::time::Duration;
@@ -49,6 +50,36 @@ impl HttpClient {
         // Configure SSL/TLS
         if !config.ssl.verify_certs {
             builder = builder.danger_accept_invalid_certs(true);
+        }
+        if let Some(ca_cert_file) = &config.ssl.ca_cert_file {
+            FileUtils::check_file_readable(ca_cert_file)?;
+            let pem = std::fs::read(ca_cert_file).map_err(RurlError::Io)?;
+            let cert = reqwest::Certificate::from_pem(&pem).map_err(|e| {
+                RurlError::Ssl(format!("Invalid CA certificate {:?}: {}", ca_cert_file, e))
+            })?;
+            builder = builder.add_root_certificate(cert);
+        }
+        match (&config.ssl.client_cert_file, &config.ssl.client_key_file) {
+            (Some(cert_file), key_file) => {
+                FileUtils::check_file_readable(cert_file)?;
+                let mut pem = std::fs::read(cert_file).map_err(RurlError::Io)?;
+                if let Some(key_file) = key_file {
+                    FileUtils::check_file_readable(key_file)?;
+                    let key = std::fs::read(key_file).map_err(RurlError::Io)?;
+                    pem.extend_from_slice(b"\n");
+                    pem.extend_from_slice(&key);
+                }
+                let identity = reqwest::Identity::from_pem(&pem).map_err(|e| {
+                    RurlError::Ssl(format!("Invalid client certificate {:?}: {}", cert_file, e))
+                })?;
+                builder = builder.identity(identity);
+            }
+            (None, Some(_)) => {
+                return Err(RurlError::Ssl(
+                    "Client key provided without certificate".to_string(),
+                ));
+            }
+            (None, None) => {}
         }
 
         let client = builder.build().map_err(RurlError::Http)?;
