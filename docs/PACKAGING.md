@@ -27,5 +27,5 @@
 
 ## 補足
 
-- リリースプロファイルは LTO・strip・`opt-level="z"`・`panic=abort` でサイズ重視です。
+- リリースプロファイルはLTO・strip・`opt-level="z"`・`panic=abort` でサイズ重視です。
 - スタックトレースが必要な場合は環境変数 `RUSTFLAGS="-C panic=unwind"` などで上書きしてください。
