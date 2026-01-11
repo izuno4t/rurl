@@ -17,6 +17,8 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "Makefile"
+  release:
+    types: [published]
 
 env:
   CARGO_TERM_COLOR: always
@@ -85,6 +87,7 @@ jobs:
     name: Release Build
     needs: basic-check
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' }}
     steps:
     - uses: actions/checkout@v4
     
