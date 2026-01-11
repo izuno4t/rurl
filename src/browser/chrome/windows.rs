@@ -372,7 +372,7 @@ fn decrypt_aes_gcm(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             "Invalid AES-GCM key length".to_string(),
         ));
     }
-    if ciphertext.len() <= AES_GCM_NONCE_LEN + AES_GCM_TAG_LEN {
+    if ciphertext.len() < AES_GCM_NONCE_LEN + AES_GCM_TAG_LEN {
         return Err(RurlError::BrowserCookie(
             "Invalid AES-GCM ciphertext length".to_string(),
         ));
