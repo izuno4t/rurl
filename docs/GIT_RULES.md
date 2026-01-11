@@ -9,9 +9,11 @@ Follow these rules for all Git operations.
 
 - Use the format `type/short-description` in lowercase (example:
   `feature/add-chrome-cookie-extractor`).
-- The name must clearly convey the intent of the work on the branch
-  (examples: `feature/implement-browser-cookie-integration`, `feature/add-chrome-cookie-extractor`,
-  `fix/windows-cookie-path`).
+- The name must clearly convey the intent of the work on the branch.
+- The short description must start with a verb and include scope when possible
+  (e.g. `linux`, `windows`, `macos`).
+- Avoid vague nouns and ambiguous abbreviations.
+- Examples: `feature/add-linux-chrome-cookie-extractor`, `fix/windows-cookie-path`.
 - Allowed types: `feature`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`.
 - Use hyphens for words; avoid spaces and special characters.
 - Names must be valid Git refs (no `..`, `~`, `^`, `:`, `?`, `*`, `[`, `\`,
