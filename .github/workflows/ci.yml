@@ -41,10 +41,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: 1.92.0
-        components: rustfmt, clippy, llvm-tools-preview
-
-    - name: Install cargo-llvm-cov
-      run: cargo install cargo-llvm-cov
+        components: rustfmt, clippy
         
     - name: Cache cargo registry
       uses: actions/cache@v3
@@ -74,7 +71,10 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: 1.92.0
-        components: rustfmt, clippy
+        components: rustfmt, clippy, llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
         
     - name: Cache cargo registry
       uses: actions/cache@v3
@@ -87,26 +87,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
           
-    - name: Build and test (make all)
-      run: make all
+    - name: Build and test (make verify-release)
+      run: make verify-release
 
-    - name: Package artifact
-      shell: bash
-      run: |
-        set -euo pipefail
-        VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
-        HOST_TARGET=$(rustc -Vv | awk '/host/ {print $2}')
-        EXE_SUFFIX=""
-        if [[ "${HOST_TARGET}" == *windows* ]]; then
-          EXE_SUFFIX=".exe"
-        fi
-        DIST_DIR="dist"
-        PKG="${DIST_DIR}/rurl-${VERSION}-${HOST_TARGET}"
-        rm -rf "${DIST_DIR}"
-        mkdir -p "${PKG}"
-        cp "target/release/rurl${EXE_SUFFIX}" "${PKG}/"
-        cp README.md LICENSE MANPAGE.md TUTORIAL.md MIGRATION_FROM_CURL.md "${PKG}/"
-        tar -C "${DIST_DIR}" -czf "${PKG}.tar.gz" "$(basename "${PKG}")"
+    - name: Package artifact (make dist)
+      run: make dist
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
