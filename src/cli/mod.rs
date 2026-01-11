@@ -4,7 +4,9 @@
 
 use crate::config::{BrowserCookieConfig, Config, HttpMethod, ProxyConfig};
 use crate::error::{Result, RurlError};
+use crate::exit_code::exit_code_for_error;
 use crate::http::HttpClient;
+use crate::i18n::localize_error;
 use crate::output::OutputManager;
 use crate::utils::{FileUtils, StringUtils, UrlUtils};
 use clap::{Arg, ArgMatches, Command};
@@ -24,9 +26,9 @@ pub fn run() {
         Err(e) => {
             error!("request failed: {}", e);
             if !silent {
-                eprintln!("rurl: error: {}", e);
+                eprintln!("rurl: {}", localize_error(&e));
             }
-            std::process::exit(1);
+            std::process::exit(exit_code_for_error(&e));
         }
     }
 }

@@ -57,8 +57,8 @@ Rust実装
 | T011b | ⏳ | Chromeクッキー抽出機能実装（Linux） | 1日 | T011 | - | keyring対応 |
 | T012a | ⏳ | Firefoxクッキー抽出機能実装（Windows） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
 | T012b | ⏳ | Firefoxクッキー抽出機能実装（Linux） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
-| T013a | 📌 | Safariクッキー抽出機能実装（Windows） | - | T013 | - | Safari未対応 |
-| T013b | 📌 | Safariクッキー抽出機能実装（Linux） | - | T013 | - | Safari未対応 |
+| T013a | ⏳ | Safariクッキー抽出機能実装（Windows） | - | T013 | - | Safari未対応 |
+| T013b | ⏳ | Safariクッキー抽出機能実装（Linux） | - | T013 | - | Safari未対応 |
 | T014a | ⏳ | Edgeクッキー抽出機能実装（Windows） | 0.5日 | T011a | - | Chromium系 |
 | T014b | ⏳ | Edgeクッキー抽出機能実装（Linux） | 0.5日 | T011b | - | Chromium系 |
 | T015a | ⏳ | その他ブラウザ対応（Windows） | 1日 | T011a,T012a | - | Brave等 |
@@ -106,10 +106,11 @@ Rust実装
 
 | タスクID | ステータス | タスク内容 | 見積工数 | 依存関係 | 担当者 | 備考 |
 | --- | --- | --- | --- | --- | --- | --- |
-| T035 | ⏳ | エラーメッセージ国際化 | 1日 | T004 | - | 分かりやすいエラー表示 |
-| T036 | ⏳ | 終了ステータスコード統一 | 0.5日 | T035 | - | curl互換のexit codes |
-| T037 | ⏳ | セキュリティ監査・脆弱性チェック | 2日 | T001-T036 | - | cargo audit使用 |
-| T038 | ⏳ | メモリ安全性検証 | 1日 | T001-T036 | - | Miri, valgrind等 |
+| T035 | ✅ | エラーメッセージ国際化 | 1日 | T004 | - | 分かりやすいエラー表示 |
+| T036 | ✅ | 終了ステータスコード統一 | 0.5日 | T035 | - | curl互換のexit codes |
+| T037 | ✅ | セキュリティ監査・脆弱性チェック | 2日 | T001-T036 | - | cargo audit使用 |
+| T037a | ✅ | cargo audit警告の解消（unmaintained依存） | 1日 | T037 | - | async-std/derivative/instant/rustls-pemfile |
+| T038 | ✅ | メモリ安全性検証 | 1日 | T001-T036 | - | Miri, valgrind等 |
 
 ### Phase 8: 品質保証・テスト
 
