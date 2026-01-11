@@ -261,26 +261,6 @@ fn redirect_origin_key(url: &Url) -> (String, Option<u16>) {
     (url.host_str().unwrap_or_default().to_string(), url.port())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::redirect_origin_key;
-    use url::Url;
-
-    #[test]
-    fn redirect_origin_key_ignores_scheme() {
-        let http = Url::parse("http://example.com/path").expect("valid url");
-        let https = Url::parse("https://example.com/path").expect("valid url");
-        assert_eq!(redirect_origin_key(&http), redirect_origin_key(&https));
-    }
-
-    #[test]
-    fn redirect_origin_key_respects_explicit_port() {
-        let http = Url::parse("http://example.com:8080/path").expect("valid url");
-        let https = Url::parse("https://example.com:8443/path").expect("valid url");
-        assert_ne!(redirect_origin_key(&http), redirect_origin_key(&https));
-    }
-}
-
 fn write_verbose_request_headers(request: &reqwest::Request) {
     let url = request.url();
     let path = request_path(url);
@@ -345,4 +325,24 @@ fn retry_delay_from_response(
         }
     }
     Some(delay)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::redirect_origin_key;
+    use url::Url;
+
+    #[test]
+    fn redirect_origin_key_ignores_scheme() {
+        let http = Url::parse("http://example.com/path").expect("valid url");
+        let https = Url::parse("https://example.com/path").expect("valid url");
+        assert_eq!(redirect_origin_key(&http), redirect_origin_key(&https));
+    }
+
+    #[test]
+    fn redirect_origin_key_respects_explicit_port() {
+        let http = Url::parse("http://example.com:8080/path").expect("valid url");
+        let https = Url::parse("https://example.com:8443/path").expect("valid url");
+        assert_ne!(redirect_origin_key(&http), redirect_origin_key(&https));
+    }
 }
