@@ -353,14 +353,15 @@ fn decrypt_aes_cbc_multi(
     hash_prefix: bool,
 ) -> Option<String> {
     for key in keys {
-        let decrypted = decrypt_aes_cbc(ciphertext, key).ok()?;
-        let trimmed = if hash_prefix && decrypted.len() > 32 {
-            &decrypted[32..]
-        } else {
-            &decrypted[..]
-        };
-        if let Ok(value) = String::from_utf8(trimmed.to_vec()) {
-            return Some(value);
+        if let Ok(decrypted) = decrypt_aes_cbc(ciphertext, key) {
+            let trimmed = if hash_prefix && decrypted.len() > 32 {
+                &decrypted[32..]
+            } else {
+                &decrypted[..]
+            };
+            if let Ok(value) = String::from_utf8(trimmed.to_vec()) {
+                return Some(value);
+            }
         }
     }
     log::warn!("Failed to decrypt Chrome cookie: UTF-8 decode failed");
