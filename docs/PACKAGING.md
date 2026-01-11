@@ -18,7 +18,7 @@
    ```
 
    - 出力先: `dist/rurl-<version>-<host-target>.tar.gz`
-   - 同梱物: バイナリ、`README.md`、`LICENSE`、`docs/LOCAL_DEVELOPMENT.md`
+   - 同梱物: バイナリ、`README.md`、`LICENSE`、`MANPAGE.md`、`TUTORIAL.md`、`MIGRATION_FROM_CURL.md`
 2. クリーンアップ
 
    ```bash
