@@ -22,3 +22,14 @@ impl Default for RequestBuilder {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::RequestBuilder;
+
+    #[test]
+    fn new_and_default_are_equivalent() {
+        let _builder = RequestBuilder::new();
+        let _builder_default = RequestBuilder::default();
+    }
+}

@@ -69,3 +69,25 @@ fn normalize_lang(value: String) -> Option<String> {
     let value = value.replace('_', "-");
     Some(value)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{localize_error, normalize_lang};
+    use crate::error::RurlError;
+
+    #[test]
+    fn normalize_lang_trims_and_normalizes() {
+        assert_eq!(
+            normalize_lang("en_US.UTF-8".to_string()),
+            Some("en-US".to_string())
+        );
+        assert_eq!(normalize_lang("".to_string()), None);
+    }
+
+    #[test]
+    fn localize_error_includes_detail() {
+        let err = RurlError::InvalidUrl("detail".to_string());
+        let message = localize_error(&err);
+        assert!(message.contains("detail"));
+    }
+}

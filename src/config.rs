@@ -218,3 +218,50 @@ impl Default for Config {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Browser, BrowserCookieConfig, Config, HttpMethod};
+
+    #[test]
+    fn browser_from_str_accepts_known_values() {
+        assert_eq!("chrome".parse::<Browser>().ok(), Some(Browser::Chrome));
+        assert_eq!("chromium".parse::<Browser>().ok(), Some(Browser::Chrome));
+        assert_eq!("firefox".parse::<Browser>().ok(), Some(Browser::Firefox));
+        assert!("unknown".parse::<Browser>().is_err());
+    }
+
+    #[test]
+    fn browser_cookie_config_parses_profile_container_keyring() {
+        let config =
+            BrowserCookieConfig::parse("chrome+login:Profile 1::personal").expect("config");
+        assert_eq!(config.browser, Browser::Chrome);
+        assert_eq!(config.keyring.as_deref(), Some("login"));
+        assert_eq!(config.profile.as_deref(), Some("Profile 1"));
+        assert_eq!(config.container.as_deref(), Some("personal"));
+    }
+
+    #[test]
+    fn browser_cookie_config_parses_minimal_format() {
+        let config = BrowserCookieConfig::parse("safari").expect("config");
+        assert_eq!(config.browser, Browser::Safari);
+        assert!(config.profile.is_none());
+        assert!(config.container.is_none());
+        assert!(config.keyring.is_none());
+    }
+
+    #[test]
+    fn http_method_parse_and_display_roundtrip() {
+        let method = "POST".parse::<HttpMethod>().expect("method");
+        assert_eq!(method.to_string(), "POST");
+        assert!("INVALID".parse::<HttpMethod>().is_err());
+    }
+
+    #[test]
+    fn config_default_has_expected_basics() {
+        let config = Config::default();
+        assert_eq!(config.method, HttpMethod::Get);
+        assert!(!config.follow_redirects);
+        assert!(config.output.show_progress);
+    }
+}

@@ -151,3 +151,117 @@ fn path_matches(request_path: &str, cookie_path: &str) -> bool {
     }
     cookie_path.ends_with('/') || request_path[cookie_path.len()..].starts_with('/')
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{domain_matches, is_expired, path_matches, BrowserCookieExtractor, Cookie};
+    use crate::config::{Browser, BrowserCookieConfig};
+    use std::collections::HashMap;
+    use url::Url;
+
+    fn extractor() -> BrowserCookieExtractor {
+        BrowserCookieExtractor::new(BrowserCookieConfig {
+            browser: Browser::Chrome,
+            profile: None,
+            container: None,
+            keyring: None,
+        })
+    }
+
+    #[test]
+    fn domain_matches_accepts_subdomains() {
+        assert!(domain_matches("example.com", ".example.com"));
+        assert!(domain_matches("sub.example.com", ".example.com"));
+        assert!(!domain_matches("other.com", ".example.com"));
+        assert!(domain_matches("example.com", "example.com"));
+        assert!(!domain_matches("sub.example.com", "example.com"));
+    }
+
+    #[test]
+    fn path_matches_respects_prefix_rules() {
+        assert!(path_matches("/a/b", "/a"));
+        assert!(path_matches("/a/b", "/a/"));
+        assert!(path_matches("/a", "/a"));
+        assert!(!path_matches("/ab", "/a"));
+        assert!(path_matches("/anything", ""));
+    }
+
+    #[test]
+    fn is_expired_handles_special_cases() {
+        assert!(!is_expired(None, 100));
+        assert!(!is_expired(Some(100_000_000_001), 100));
+        assert!(is_expired(Some(50), 100));
+    }
+
+    #[test]
+    fn cookies_for_url_filters_secure_and_expired() {
+        let mut store: HashMap<String, Vec<Cookie>> = HashMap::new();
+        store.insert(
+            "example.com".to_string(),
+            vec![
+                Cookie {
+                    name: "secure".to_string(),
+                    value: "1".to_string(),
+                    domain: "example.com".to_string(),
+                    path: "/".to_string(),
+                    secure: true,
+                    http_only: false,
+                    expires: None,
+                },
+                Cookie {
+                    name: "expired".to_string(),
+                    value: "0".to_string(),
+                    domain: "example.com".to_string(),
+                    path: "/".to_string(),
+                    secure: false,
+                    http_only: false,
+                    expires: Some(0),
+                },
+                Cookie {
+                    name: "ok".to_string(),
+                    value: "yes".to_string(),
+                    domain: "example.com".to_string(),
+                    path: "/".to_string(),
+                    secure: false,
+                    http_only: false,
+                    expires: None,
+                },
+            ],
+        );
+
+        let url = Url::parse("http://example.com/").expect("url");
+        let cookies = extractor().cookies_for_url(&store, &url);
+        assert_eq!(cookies.len(), 1);
+        assert_eq!(cookies[0].name, "ok");
+
+        let https = Url::parse("https://example.com/").expect("url");
+        let cookies = extractor().cookies_for_url(&store, &https);
+        assert_eq!(cookies.len(), 2);
+    }
+
+    #[test]
+    fn cookies_to_header_formats_pairs() {
+        let cookies = vec![
+            Cookie {
+                name: "a".to_string(),
+                value: "1".to_string(),
+                domain: "example.com".to_string(),
+                path: "/".to_string(),
+                secure: false,
+                http_only: false,
+                expires: None,
+            },
+            Cookie {
+                name: "b".to_string(),
+                value: "2".to_string(),
+                domain: "example.com".to_string(),
+                path: "/".to_string(),
+                secure: false,
+                http_only: false,
+                expires: None,
+            },
+        ];
+        let header = extractor().cookies_to_header(&cookies);
+        assert_eq!(header, "a=1; b=2");
+    }
+}

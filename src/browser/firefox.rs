@@ -348,4 +348,25 @@ mod macos {
         NoneOnly,
         Specific,
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{is_path_like, l10n_matches};
+
+        #[test]
+        fn is_path_like_detects_paths() {
+            assert!(is_path_like("~/Library"));
+            assert!(is_path_like("C:\\Users\\user"));
+            assert!(is_path_like("/tmp/file"));
+            assert!(!is_path_like("Profile 1"));
+        }
+
+        #[test]
+        fn l10n_matches_accepts_known_pattern() {
+            assert!(l10n_matches("Personal", Some("userContextPersonal.label")));
+            assert!(!l10n_matches("Work", Some("userContextPersonal.label")));
+            assert!(!l10n_matches("Personal", None));
+            assert!(!l10n_matches("Personal", Some("invalid")));
+        }
+    }
 }
