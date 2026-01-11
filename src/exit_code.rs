@@ -26,7 +26,7 @@ fn http_exit_code(err: &reqwest::Error) -> i32 {
         return 7;
     }
     if err.is_request() {
-        return 56;
+        return 2;
     }
     43
 }
