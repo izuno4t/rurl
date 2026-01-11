@@ -122,14 +122,19 @@ fn is_expired(expires: Option<i64>, now: i64) -> bool {
 }
 
 fn domain_matches(host: &str, cookie_domain: &str) -> bool {
-    let cookie_domain = cookie_domain.trim().trim_start_matches('.').to_lowercase();
+    let cookie_domain = cookie_domain.trim().to_lowercase();
     if cookie_domain.is_empty() {
         return false;
     }
-    if host == cookie_domain {
-        return true;
+    if cookie_domain.starts_with('.') {
+        let domain = cookie_domain.trim_start_matches('.');
+        if domain.is_empty() {
+            return false;
+        }
+        host == domain || host.ends_with(&format!(".{}", domain))
+    } else {
+        host == cookie_domain
     }
-    host.ends_with(&format!(".{}", cookie_domain))
 }
 
 fn path_matches(request_path: &str, cookie_path: &str) -> bool {

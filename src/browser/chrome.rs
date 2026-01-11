@@ -295,11 +295,7 @@ mod macos {
             return Ok(None);
         };
 
-        let expires = if expires_utc == 0 {
-            None
-        } else {
-            Some(expires_utc)
-        };
+        let expires = chromium_expires_to_unix_seconds(expires_utc);
 
         Ok(Some(Cookie {
             name,
@@ -323,6 +319,18 @@ mod macos {
             _ => Err(RurlError::BrowserCookie(
                 "Unsupported cookie ciphertext type".to_string(),
             )),
+        }
+    }
+
+    fn chromium_expires_to_unix_seconds(expires_utc: i64) -> Option<i64> {
+        if expires_utc == 0 {
+            return None;
+        }
+        let unix_seconds = (expires_utc / 1_000_000) - 11_644_473_600;
+        if unix_seconds <= 0 {
+            None
+        } else {
+            Some(unix_seconds)
         }
     }
 

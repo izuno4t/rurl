@@ -154,7 +154,16 @@ mod macos {
             return Ok(None);
         }
 
-        let expires = Some(mac_absolute_to_unix(expiration));
+        let expires = if expiration.is_finite() {
+            let seconds = mac_absolute_to_unix(expiration);
+            if seconds > 0 {
+                Some(seconds)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         Ok(Some(Cookie {
             name,

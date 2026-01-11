@@ -244,7 +244,7 @@ mod macos {
         let path: String = row
             .get(3)
             .map_err(|e| RurlError::BrowserCookie(format!("Failed to read cookie path: {}", e)))?;
-        let expiry: i64 = row.get(4).map_err(|e| {
+        let expiry: Option<i64> = row.get(4).map_err(|e| {
             RurlError::BrowserCookie(format!("Failed to read cookie expiry: {}", e))
         })?;
         let secure: i64 = row.get(5).map_err(|e| {
@@ -254,16 +254,16 @@ mod macos {
             RurlError::BrowserCookie(format!("Failed to read cookie http-only flag: {}", e))
         })?;
 
-        let expiry_seconds = if schema_version >= 16 {
-            expiry / 1000
-        } else {
-            expiry
-        };
-
-        let expires = if expiry_seconds == 0 {
-            None
-        } else {
-            Some(expiry_seconds)
+        let expiry_seconds = expiry.map(|expiry| {
+            if schema_version >= 16 {
+                expiry / 1000
+            } else {
+                expiry
+            }
+        });
+        let expires = match expiry_seconds {
+            Some(seconds) if seconds > 0 => Some(seconds),
+            _ => None,
         };
 
         Ok(Some(Cookie {
