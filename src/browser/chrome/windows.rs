@@ -407,10 +407,11 @@ fn decrypt_aes_gcm(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
         ));
     }
     let (nonce, payload) = ciphertext.split_at(AES_GCM_NONCE_LEN);
+    let nonce = aes_gcm::Nonce::clone_from_slice(nonce);
     let cipher = Aes256Gcm::new_from_slice(key)
         .map_err(|e| RurlError::BrowserCookie(format!("Failed to create AES-GCM cipher: {}", e)))?;
     cipher
-        .decrypt(aes_gcm::Nonce::from_slice(nonce), payload)
+        .decrypt(&nonce, payload)
         .map_err(|_| RurlError::BrowserCookie("Failed to decrypt cookie".to_string()))
 }
 
