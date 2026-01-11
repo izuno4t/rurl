@@ -5,7 +5,7 @@
 use crate::config::{BrowserCookieConfig, Config, HttpMethod, ProxyConfig};
 use crate::error::{Result, RurlError};
 use crate::http::HttpClient;
-use crate::output::OutputWriter;
+use crate::output::OutputManager;
 use crate::utils::{FileUtils, StringUtils, UrlUtils};
 use clap::{Arg, ArgMatches, Command};
 use log::{error, info};
@@ -17,12 +17,15 @@ pub mod runner;
 pub fn run() {
     let app = create_app();
     let matches = app.get_matches();
+    let silent = matches.get_flag("silent");
 
     match run_with_args(&matches) {
         Ok(()) => {}
         Err(e) => {
             error!("request failed: {}", e);
-            eprintln!("rurl: error: {}", e);
+            if !silent {
+                eprintln!("rurl: error: {}", e);
+            }
             std::process::exit(1);
         }
     }
@@ -39,37 +42,12 @@ fn run_with_args(matches: &ArgMatches) -> Result<()> {
 
     rt.block_on(async {
         let output_config = config.output.clone();
-        let include_headers = output_config.include_headers;
-        let verbose = output_config.verbose;
-        let silent = output_config.silent;
-        let output = OutputWriter::new(output_config);
-
         let client = HttpClient::new(config)?;
         let response_history = client.execute_with_history().await?;
-        let response = response_history.response;
-
-        let body = response.text().await.map_err(RurlError::Http)?;
-
-        if verbose && !silent {
-            for info in &response_history.chain {
-                write_verbose_headers(info.version, info.status, &info.headers);
-            }
-        }
-
-        if include_headers {
-            let mut combined = String::new();
-            for info in &response_history.chain {
-                combined.push_str(&format_response_headers(
-                    info.version,
-                    info.status,
-                    &info.headers,
-                ));
-            }
-            combined.push_str(&body);
-            output.write(&combined)?;
-        } else {
-            output.write(&body)?;
-        }
+        let output = OutputManager::new(output_config);
+        output
+            .write_response(response_history.response, &response_history.chain)
+            .await?;
         Ok(())
     })
 }
@@ -125,6 +103,18 @@ fn create_app() -> Command {
                 .short('s')
                 .long("silent")
                 .help("Silent mode")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("pretty-json")
+                .long("pretty-json")
+                .help("Pretty-print JSON responses")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("no-progress-meter")
+                .long("no-progress-meter")
+                .help("Disable progress meter")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
@@ -258,45 +248,6 @@ fn create_app() -> Command {
         )
 }
 
-fn format_response_headers(
-    version: reqwest::Version,
-    status: reqwest::StatusCode,
-    headers: &reqwest::header::HeaderMap,
-) -> String {
-    let mut output = String::new();
-    output.push_str(&format!("{} {}\n", http_version_label(version), status));
-    for (name, value) in headers.iter() {
-        let value = value.to_str().unwrap_or("<non-utf8>");
-        output.push_str(&format!("{}: {}\n", name, value));
-    }
-    output.push('\n');
-    output
-}
-
-fn write_verbose_headers(
-    version: reqwest::Version,
-    status: reqwest::StatusCode,
-    headers: &reqwest::header::HeaderMap,
-) {
-    eprintln!("< {} {}", http_version_label(version), status);
-    for (name, value) in headers.iter() {
-        let value = value.to_str().unwrap_or("<non-utf8>");
-        eprintln!("< {}: {}", name, value);
-    }
-    eprintln!("<");
-}
-
-fn http_version_label(version: reqwest::Version) -> &'static str {
-    match version {
-        reqwest::Version::HTTP_09 => "HTTP/0.9",
-        reqwest::Version::HTTP_10 => "HTTP/1.0",
-        reqwest::Version::HTTP_11 => "HTTP/1.1",
-        reqwest::Version::HTTP_2 => "HTTP/2",
-        reqwest::Version::HTTP_3 => "HTTP/3",
-        _ => "HTTP/1.1",
-    }
-}
-
 /// Build configuration from command line arguments
 fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
     let mut config = Config::default();
@@ -380,6 +331,11 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
     config.output.verbose = matches.get_flag("verbose");
     config.output.silent = matches.get_flag("silent");
     config.output.include_headers = matches.get_flag("include");
+    config.output.format_json = matches.get_flag("pretty-json");
+    config.output.show_progress = !matches.get_flag("no-progress-meter");
+    if config.output.silent {
+        config.output.show_progress = false;
+    }
 
     if let Some(output_file) = matches.get_one::<String>("output") {
         config.output.file = Some(FileUtils::expand_path(output_file)?);

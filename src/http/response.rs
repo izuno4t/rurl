@@ -47,3 +47,28 @@ impl ResponseFormatter {
         Ok(serde_json::to_string_pretty(&value)?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ResponseFormatter;
+
+    #[test]
+    fn format_json_body_pretty_prints() {
+        let formatter = ResponseFormatter::new(true);
+        let body = r#"{"name":"rurl","version":1}"#;
+        let formatted = formatter
+            .format(body, Some("application/json"))
+            .expect("format should succeed");
+        assert_eq!(formatted, "{\n  \"name\": \"rurl\",\n  \"version\": 1\n}");
+    }
+
+    #[test]
+    fn format_json_body_skips_when_disabled() {
+        let formatter = ResponseFormatter::new(false);
+        let body = r#"{"name":"rurl"}"#;
+        let formatted = formatter
+            .format(body, Some("application/json"))
+            .expect("format should succeed");
+        assert_eq!(formatted, body);
+    }
+}
