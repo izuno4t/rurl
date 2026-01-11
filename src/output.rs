@@ -3,6 +3,7 @@
 use crate::config::OutputConfig;
 use crate::error::{Result, RurlError};
 use crate::http::response::{ResponseFormatter, ResponseInfo};
+use encoding_rs::Encoding;
 use futures_util::StreamExt;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::Response;
@@ -86,7 +87,8 @@ impl OutputManager {
             .and_then(|value| value.to_str().ok())
             .map(|value| value.to_string());
         let body = self.read_body_with_progress(response).await?;
-        let formatted = self.formatter.format(&body, content_type.as_deref())?;
+        let decoded = decode_body_with_charset(body, content_type.as_deref())?;
+        let formatted = self.formatter.format(&decoded, content_type.as_deref())?;
 
         let output = if self.config.include_headers {
             let mut combined = String::new();
@@ -117,7 +119,7 @@ impl OutputManager {
         }
     }
 
-    async fn read_body_with_progress(&self, response: Response) -> Result<String> {
+    async fn read_body_with_progress(&self, response: Response) -> Result<Vec<u8>> {
         let total = response.content_length();
         let mut progress =
             ProgressReporter::new(self.config.show_progress && !self.config.silent, total);
@@ -133,7 +135,7 @@ impl OutputManager {
         }
 
         progress.finish(current);
-        Ok(String::from_utf8_lossy(&buffer).to_string())
+        Ok(buffer)
     }
 }
 
@@ -190,6 +192,31 @@ fn progress_line(current: u64, total: Option<u64>) -> String {
         }
         _ => format!("\r{} bytes", current),
     }
+}
+
+fn decode_body_with_charset(body: Vec<u8>, content_type: Option<&str>) -> Result<String> {
+    if let Some(charset) = extract_charset(content_type) {
+        if let Some(encoding) = Encoding::for_label(charset.as_bytes()) {
+            let (decoded, _, _) = encoding.decode(&body);
+            return Ok(decoded.into_owned());
+        }
+    }
+    Ok(String::from_utf8_lossy(&body).to_string())
+}
+
+fn extract_charset(content_type: Option<&str>) -> Option<String> {
+    let content_type = content_type?;
+    for part in content_type.split(';').skip(1) {
+        let trimmed = part.trim();
+        if let Some(value) = trimmed.strip_prefix("charset=") {
+            return Some(value.trim().trim_matches('"').to_string());
+        }
+        let lowered = trimmed.to_ascii_lowercase();
+        if let Some(value) = lowered.strip_prefix("charset=") {
+            return Some(value.trim().trim_matches('"').to_string());
+        }
+    }
+    None
 }
 
 fn format_response_headers(
