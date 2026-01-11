@@ -1,6 +1,8 @@
+#[cfg(target_os = "macos")]
 use rurl::browser::BrowserCookieExtractor;
+#[cfg(target_os = "macos")]
 use rurl::config::{Browser, BrowserCookieConfig};
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 use rurl::error::RurlError;
 
 #[cfg(target_os = "macos")]
@@ -118,7 +120,7 @@ async fn test_extract_firefox_cookies_from_db() {
     assert!(cookies.iter().any(|cookie| cookie.name == "session"));
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 #[tokio::test]
 async fn test_browser_cookie_extraction_unsupported() {
     let config = BrowserCookieConfig {

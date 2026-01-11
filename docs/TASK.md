@@ -53,13 +53,13 @@ Rust実装
 
 | タスクID | ステータス | タスク内容 | 見積工数 | 依存関係 | 担当者 | 備考 |
 | --- | --- | --- | --- | --- | --- | --- |
-| T011a | ⏳ | Chromeクッキー抽出機能実装（Windows） | 1日 | T011 | - | DPAPI対応 |
-| T012a | ⏳ | Firefoxクッキー抽出機能実装（Windows） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
+| T011a | ✅ | Chromeクッキー抽出機能実装（Windows） | 1日 | T011 | - | DPAPI対応 |
+| T012a | ✅ | Firefoxクッキー抽出機能実装（Windows） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
 | T013a | 🚫 | Safariクッキー抽出機能実装（Windows） | - | T013 | - | Safari未対応 |
-| T014a | ⏳ | Edgeクッキー抽出機能実装（Windows） | 0.5日 | T011a | - | Chromium系 |
-| T015a | ⏳ | その他ブラウザ対応（Windows） | 1日 | T011a,T012a | - | Brave等 |
-| T016a | ⏳ | ブラウザプロファイル指定機能（Windows） | 0.5日 | T011a-15a | - | :PROFILE構文対応 |
-| T017a | ⏳ | Firefoxコンテナタブ対応（Windows） | 0.5日 | T012a | - | ::CONTAINER構文対応 |
+| T014a | ✅ | Edgeクッキー抽出機能実装（Windows） | 0.5日 | T011a | - | Chromium系 |
+| T015a | ✅ | その他ブラウザ対応（Windows） | 1日 | T011a,T012a | - | Brave等 |
+| T016a | ✅ | ブラウザプロファイル指定機能（Windows） | 0.5日 | T011a-15a | - | :PROFILE構文対応 |
+| T017a | ✅ | Firefoxコンテナタブ対応（Windows） | 0.5日 | T012a | - | ::CONTAINER構文対応 |
 
 ### Phase 3c: ブラウザクッキー統合機能（Linux）
 
