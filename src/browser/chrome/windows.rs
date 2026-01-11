@@ -384,7 +384,9 @@ fn read_windows_v10_key(browser_root: &Path) -> Result<Option<Vec<u8>>> {
         Some(key) => key,
         None => return Ok(None),
     };
-    let encrypted_bytes = STANDARD.decode(encrypted_key).ok()?;
+    let encrypted_bytes = STANDARD
+        .decode(encrypted_key)
+        .map_err(|_| RurlError::BrowserCookie("Failed to decode Local State key".to_string()))?;
     if !encrypted_bytes.starts_with(WINDOWS_DPAPI_PREFIX) {
         log::warn!("Invalid DPAPI prefix in Local State");
         return Ok(None);
