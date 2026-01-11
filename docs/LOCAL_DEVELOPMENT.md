@@ -70,12 +70,12 @@ make coverage
 ### クロスコンパイル
 
 主要ターゲットは `rust-toolchain.toml` のツールチェーンに合わせて `rustup target add` で追加します。
-必要なクロスツールチェーン（例: `x86_64-w64-mingw32-gcc` や `x86_64-linux-gnu-gcc`）を各OSの
-パッケージマネージャで用意したうえで、以下を参考にしてください。
+必要なクロスツールチェーン（例: `x86_64-w64-mingw32-gcc`）を各OSのパッケージマネージャで用意したうえで、
+以下を参考にしてください。
 
 - `CROSS_TARGETS="x86_64-unknown-linux-gnu x86_64-pc-windows-gnu" ./setup.sh`
   まとめてターゲットを追加します（値は環境に合わせて変更してください）
-- `.cargo/config.toml` に代表的なクロスターゲット向けの `linker`/`ar` を記載しています。
+- `.cargo/config.toml` は Windows GNU 向けの `linker`/`ar` のみを設定しています。
   ツール名が異なる場合は適宜更新してください
 - ビルド例: `cargo build --target x86_64-unknown-linux-gnu` /
   `cargo build --target x86_64-pc-windows-gnu`
