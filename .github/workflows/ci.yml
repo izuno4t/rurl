@@ -25,6 +25,11 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: write
+  actions: read
+  checks: read
+
 jobs:
   quality:
     name: Quality Checks (Linux)
@@ -82,11 +87,32 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
           
-    - name: Build
-      run: cargo build --verbose
-      
-    - name: Test build
-      run: cargo test --verbose
+    - name: Build and test (make all)
+      run: make all
+
+    - name: Package artifact
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+        HOST_TARGET=$(rustc -Vv | awk '/host/ {print $2}')
+        EXE_SUFFIX=""
+        if [[ "${HOST_TARGET}" == *windows* ]]; then
+          EXE_SUFFIX=".exe"
+        fi
+        DIST_DIR="dist"
+        PKG="${DIST_DIR}/rurl-${VERSION}-${HOST_TARGET}"
+        rm -rf "${DIST_DIR}"
+        mkdir -p "${PKG}"
+        cp "target/release/rurl${EXE_SUFFIX}" "${PKG}/"
+        cp README.md LICENSE MANPAGE.md TUTORIAL.md MIGRATION_FROM_CURL.md "${PKG}/"
+        tar -C "${DIST_DIR}" -czf "${PKG}.tar.gz" "$(basename "${PKG}")"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-${{ matrix.os }}
+        path: dist/*.tar.gz
 
     - name: Install cross linker (Windows GNU)
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -132,18 +158,17 @@ jobs:
 
   release-build:
     name: Release Build
-    needs: quality
+    needs: build
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'release' }}
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: 1.92.0
-        components: rustfmt, clippy
-        
+
     - name: Cache cargo registry
       uses: actions/cache@v3
       with:
@@ -154,9 +179,25 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
-          
-    - name: Verify (fmt, clippy-all, check, test)
-      run: make verify-release
-      
-    - name: Package release artifact
-      run: make dist
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: dist-download
+
+    - name: Upload assets to release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        set -euo pipefail
+        shopt -s globstar nullglob
+        files=(dist-download/**/*.tar.gz)
+        if [ ${#files[@]} -eq 0 ]; then
+          echo "No artifacts found to upload."
+          exit 1
+        fi
+        for f in "${files[@]}"; do
+          gh release upload "${TAG}" "${f}" --clobber
+        done
