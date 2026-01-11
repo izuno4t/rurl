@@ -65,14 +65,14 @@ Rust実装
 
 | タスクID | ステータス | タスク内容 | 見積工数 | 依存関係 | 担当者 | 備考 |
 | --- | --- | --- | --- | --- | --- | --- |
-| T011b | ⏳ | Chromeクッキー抽出機能実装（Linux） | 1日 | T011 | - | keyring対応 |
+| T011b | ✅ | Chromeクッキー抽出機能実装（Linux） | 1日 | T011 | - | keyring対応 |
 | T012b | ⏳ | Firefoxクッキー抽出機能実装（Linux） | 1日 | T012 | - | SQLiteベース、プロファイル対応 |
 | T013b | ⏳ | Safariクッキー抽出機能実装（Linux） | - | T013 | - | Safari未対応 |
 | T014b | ⏳ | Edgeクッキー抽出機能実装（Linux） | 0.5日 | T011b | - | Chromium系 |
 | T015b | ⏳ | その他ブラウザ対応（Linux） | 1日 | T011b,T012b | - | Brave等 |
 | T016b | ⏳ | ブラウザプロファイル指定機能（Linux） | 0.5日 | T011b-15b | - | :PROFILE構文対応 |
 | T017b | ⏳ | Firefoxコンテナタブ対応（Linux） | 0.5日 | T012b | - | ::CONTAINER構文対応 |
-| T018 | ⏳ | LinuxキーリングでのChromium復号化 | 2日 | T011 | - | +KEYRING構文対応 |
+| T018 | ✅ | LinuxキーリングでのChromium復号化 | 2日 | T011 | - | +KEYRING構文対応 |
 
 ### Phase 4: プロキシ・SSL/TLS機能
 
