@@ -23,6 +23,12 @@ responses in Japanese.
 - If it remains unclear after confirmation, ask for a decision before
   proceeding.
 
+## Clippy Policy
+
+- Release checks run `clippy` with dependencies.
+- If dependency warnings fail clippy, resolve by updating or pinning
+  dependencies; otherwise, stop the release.
+
 ## Project Structure & Module Organization
 
 - `src/`: Rust crate source. Entry points are `src/main.rs` (CLI) and
