@@ -411,3 +411,97 @@ fn build_config_from_args(matches: &ArgMatches) -> Result<Config> {
 
     Ok(config)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{build_config_from_args, create_app};
+    use crate::config::HttpMethod;
+
+    fn matches_from(args: &[&str]) -> clap::ArgMatches {
+        create_app().try_get_matches_from(args).expect("matches")
+    }
+
+    #[test]
+    fn build_config_sets_defaults_from_url() {
+        let matches = matches_from(&["rurl", "example.com"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert_eq!(config.url, "http://example.com/");
+        assert_eq!(config.method, HttpMethod::Get);
+    }
+
+    #[test]
+    fn build_config_sets_post_when_data_present() {
+        let matches = matches_from(&["rurl", "http://example.com", "-d", "a=1"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert_eq!(config.method, HttpMethod::Post);
+        assert_eq!(config.data.as_deref(), Some("a=1"));
+        assert!(!config.request_method_explicit);
+    }
+
+    #[test]
+    fn build_config_respects_explicit_method() {
+        let matches = matches_from(&["rurl", "http://example.com", "-X", "PUT"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert_eq!(config.method, HttpMethod::Put);
+        assert!(config.request_method_explicit);
+    }
+
+    #[test]
+    fn build_config_parses_headers() {
+        let matches = matches_from(&["rurl", "http://example.com", "-H", "X-Test: value"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert_eq!(
+            config.headers.get("X-Test").map(String::as_str),
+            Some("value")
+        );
+    }
+
+    #[test]
+    fn build_config_supports_redirect_flags() {
+        let matches = matches_from(&["rurl", "http://example.com", "--location-trusted"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert!(config.follow_redirects);
+        assert!(config.location_trusted);
+    }
+
+    #[test]
+    fn build_config_handles_max_redirs_unlimited() {
+        let matches = matches_from(&["rurl", "http://example.com", "--max-redirs=-1"]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert!(config.max_redirects.is_none());
+    }
+
+    #[test]
+    fn build_config_proxy_user_requires_proxy() {
+        let matches = matches_from(&["rurl", "http://example.com", "--proxy-user", "user:pass"]);
+        let err = build_config_from_args(&matches).expect_err("proxy error");
+        assert!(err.to_string().contains("Proxy user"));
+    }
+
+    #[test]
+    fn build_config_proxy_user_requires_username() {
+        let matches = matches_from(&[
+            "rurl",
+            "http://example.com",
+            "--proxy",
+            "http://proxy",
+            "--proxy-user",
+            ":pass",
+        ]);
+        let err = build_config_from_args(&matches).expect_err("proxy error");
+        assert!(err.to_string().contains("username"));
+    }
+
+    #[test]
+    fn build_config_silent_disables_progress() {
+        let matches = matches_from(&[
+            "rurl",
+            "http://example.com",
+            "--silent",
+            "--no-progress-meter",
+        ]);
+        let config = build_config_from_args(&matches).expect("config");
+        assert!(config.output.silent);
+        assert!(!config.output.show_progress);
+    }
+}

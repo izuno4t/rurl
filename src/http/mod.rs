@@ -360,7 +360,13 @@ fn retry_delay_from_response(
 
 #[cfg(test)]
 mod tests {
-    use super::redirect_origin_key;
+    use super::{
+        find_cookie_header, is_sensitive_header, redirect_origin_key, request_path,
+        retry_delay_from_response,
+    };
+    use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
+    use std::collections::HashMap;
+    use std::time::Duration;
     use url::Url;
 
     #[test]
@@ -375,5 +381,61 @@ mod tests {
         let http = Url::parse("http://example.com:8080/path").expect("valid url");
         let https = Url::parse("https://example.com:8443/path").expect("valid url");
         assert_ne!(redirect_origin_key(&http), redirect_origin_key(&https));
+    }
+
+    #[test]
+    fn find_cookie_header_is_case_insensitive() {
+        let mut headers = HashMap::new();
+        headers.insert("Content-Type".to_string(), "text/plain".to_string());
+        headers.insert("CoOkIe".to_string(), "a=1".to_string());
+        assert_eq!(find_cookie_header(&headers), Some("a=1".to_string()));
+
+        headers.clear();
+        assert_eq!(find_cookie_header(&headers), None);
+    }
+
+    #[test]
+    fn is_sensitive_header_matches_known_names() {
+        assert!(is_sensitive_header("Authorization"));
+        assert!(is_sensitive_header("cookie"));
+        assert!(!is_sensitive_header("x-test"));
+    }
+
+    #[test]
+    fn request_path_handles_empty_and_query() {
+        let url = Url::parse("http://example.com").expect("valid url");
+        assert_eq!(request_path(&url), "/");
+        let url = Url::parse("http://example.com/path?query=1").expect("valid url");
+        assert_eq!(request_path(&url), "/path?query=1");
+    }
+
+    #[test]
+    fn retry_delay_from_response_respects_retry_after() {
+        let mut headers = HeaderMap::new();
+        headers.insert(RETRY_AFTER, HeaderValue::from_static("10"));
+        let delay = retry_delay_from_response(
+            reqwest::StatusCode::TOO_MANY_REQUESTS,
+            &headers,
+            Duration::from_secs(3),
+        )
+        .expect("delay");
+        assert_eq!(delay, Duration::from_secs(10));
+
+        let mut headers = HeaderMap::new();
+        headers.insert(RETRY_AFTER, HeaderValue::from_static("1"));
+        let delay = retry_delay_from_response(
+            reqwest::StatusCode::SERVICE_UNAVAILABLE,
+            &headers,
+            Duration::from_secs(5),
+        )
+        .expect("delay");
+        assert_eq!(delay, Duration::from_secs(5));
+
+        let delay = retry_delay_from_response(
+            reqwest::StatusCode::OK,
+            &HeaderMap::new(),
+            Duration::from_secs(5),
+        );
+        assert!(delay.is_none());
     }
 }

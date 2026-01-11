@@ -394,4 +394,25 @@ mod macos {
             .map_err(|_| RurlError::BrowserCookie("Failed to decrypt cookie".to_string()))?;
         Ok(plaintext.to_vec())
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{chromium_expires_to_unix_seconds, is_path_like};
+
+        #[test]
+        fn is_path_like_detects_paths() {
+            assert!(is_path_like("~/Library"));
+            assert!(is_path_like("C:\\Users\\user"));
+            assert!(is_path_like("/tmp/file"));
+            assert!(!is_path_like("Default"));
+        }
+
+        #[test]
+        fn chromium_expires_to_unix_seconds_handles_bounds() {
+            assert_eq!(chromium_expires_to_unix_seconds(0), None);
+            let base = 11_644_473_600_000_000i64;
+            assert_eq!(chromium_expires_to_unix_seconds(base), None);
+            assert_eq!(chromium_expires_to_unix_seconds(base + 1_000_000), Some(1));
+        }
+    }
 }

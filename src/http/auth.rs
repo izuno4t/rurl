@@ -37,3 +37,36 @@ impl Auth {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Auth;
+
+    #[test]
+    fn basic_auth_formats_header() {
+        let header = Auth::basic_auth("user", "pass");
+        assert!(header.starts_with("Basic "));
+        assert!(header.contains("dXNlcjpwYXNz"));
+    }
+
+    #[test]
+    fn bearer_token_formats_header() {
+        let header = Auth::bearer_token("token");
+        assert_eq!(header, "Bearer token");
+    }
+
+    #[test]
+    fn parse_user_pass_splits_on_colon() {
+        let (user, pass) = Auth::parse_user_pass("user:pass").expect("parsed");
+        assert_eq!(user, "user");
+        assert_eq!(pass, "pass");
+
+        let (user, pass) = Auth::parse_user_pass("user").expect("parsed");
+        assert_eq!(user, "user");
+        assert!(pass.is_empty());
+
+        let (user, pass) = Auth::parse_user_pass("user:pass:extra").expect("parsed");
+        assert_eq!(user, "user");
+        assert_eq!(pass, "pass:extra");
+    }
+}

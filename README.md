@@ -1,10 +1,8 @@
 # rurl
 
 [![CI][ci-badge]][ci-link]
-[![Basic Build Check][basic]][ci-link]
 
 [ci-badge]: https://github.com/izuno4t/rurl/actions/workflows/ci.yml/badge.svg
-[basic]: https://github.com/izuno4t/rurl/actions/workflows/basic.yml/badge.svg
 [ci-link]: https://github.com/izuno4t/rurl/actions
 
 A Modern curl Alternative Written in Rust

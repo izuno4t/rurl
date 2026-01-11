@@ -45,3 +45,52 @@ impl SslUtils {
         std::fs::read(path).map_err(RurlError::Io)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::SslUtils;
+    use crate::config::SslConfig;
+    use crate::error::RurlError;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn validate_config_accepts_existing_files() {
+        let temp = tempdir().expect("tempdir");
+        let ca = temp.path().join("ca.pem");
+        let cert = temp.path().join("client.pem");
+        let key = temp.path().join("client.key");
+        fs::write(&ca, "ca").expect("write ca");
+        fs::write(&cert, "cert").expect("write cert");
+        fs::write(&key, "key").expect("write key");
+        let config = SslConfig {
+            verify_certs: true,
+            ca_cert_file: Some(ca),
+            client_cert_file: Some(cert),
+            client_key_file: Some(key),
+        };
+        SslUtils::validate_config(&config).expect("valid config");
+    }
+
+    #[test]
+    fn validate_config_rejects_missing_files() {
+        let temp = tempdir().expect("tempdir");
+        let config = SslConfig {
+            verify_certs: true,
+            ca_cert_file: Some(temp.path().join("missing.pem")),
+            client_cert_file: None,
+            client_key_file: None,
+        };
+        let err = SslUtils::validate_config(&config).expect_err("missing");
+        assert!(matches!(err, RurlError::FileNotFound(_)));
+    }
+
+    #[test]
+    fn read_cert_file_reads_bytes() {
+        let temp = tempdir().expect("tempdir");
+        let path = temp.path().join("cert.pem");
+        fs::write(&path, "data").expect("write");
+        let data = SslUtils::read_cert_file(&path).expect("read");
+        assert_eq!(data, b"data");
+    }
+}

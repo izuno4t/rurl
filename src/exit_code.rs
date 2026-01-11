@@ -58,4 +58,22 @@ mod tests {
         let err = RurlError::RedirectLimitExceeded(2);
         assert_eq!(exit_code_for_error(&err), 47);
     }
+
+    #[test]
+    fn exit_code_maps_ssl_variants() {
+        let err = RurlError::Ssl("CA certificate failed".to_string());
+        assert_eq!(exit_code_for_error(&err), 77);
+        let err = RurlError::Ssl("Client certificate missing".to_string());
+        assert_eq!(exit_code_for_error(&err), 58);
+        let err = RurlError::Ssl("TLS handshake error".to_string());
+        assert_eq!(exit_code_for_error(&err), 35);
+    }
+
+    #[test]
+    fn exit_code_maps_auth_and_config() {
+        let err = RurlError::Auth("bad".to_string());
+        assert_eq!(exit_code_for_error(&err), 94);
+        let err = RurlError::Config("bad".to_string());
+        assert_eq!(exit_code_for_error(&err), 2);
+    }
 }

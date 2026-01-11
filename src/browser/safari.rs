@@ -252,4 +252,28 @@ mod macos {
             Ok(())
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{mac_absolute_to_unix, read_null_terminated_string_at, MAC_EPOCH_OFFSET};
+
+        #[test]
+        fn read_null_terminated_string_at_reads_value() {
+            let data = b"test\0rest";
+            let value = read_null_terminated_string_at(data, 0).expect("string");
+            assert_eq!(value, "test");
+        }
+
+        #[test]
+        fn read_null_terminated_string_at_rejects_missing_terminator() {
+            let err = read_null_terminated_string_at(b"test", 0).expect_err("missing");
+            let message = format!("{err}");
+            assert!(message.contains("not terminated"));
+        }
+
+        #[test]
+        fn mac_absolute_to_unix_converts_seconds() {
+            assert_eq!(mac_absolute_to_unix(0.0), MAC_EPOCH_OFFSET);
+        }
+    }
 }
