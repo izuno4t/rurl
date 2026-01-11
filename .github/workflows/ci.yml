@@ -9,6 +9,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "Makefile"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [ main, develop, "feature/**", "claude/**" ]
     paths:
@@ -17,6 +18,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "Makefile"
+      - ".github/workflows/ci.yml"
   release:
     types: [published]
 
@@ -24,8 +26,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  basic-check:
-    name: Basic Build Check
+  quality:
+    name: Quality Checks (Linux)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -38,10 +40,6 @@ jobs:
 
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov
-
-    - name: Install cargo-audit
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-      run: cargo install cargo-audit
         
     - name: Cache cargo registry
       uses: actions/cache@v3
@@ -57,13 +55,9 @@ jobs:
     - name: Verify (fmt, clippy, check, test)
       run: make verify
 
-    - name: Security audit
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-      run: cargo audit
-
   build:
-    name: Build
-    needs: basic-check
+    name: Build and Test
+    needs: quality
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -94,9 +88,39 @@ jobs:
     - name: Test build
       run: cargo test --verbose
 
+  audit:
+    name: Security Audit (Linux)
+    needs: quality
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: 1.92.0
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Security audit
+      run: cargo audit
+
   release-build:
     name: Release Build
-    needs: basic-check
+    needs: quality
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'release' }}
     steps:
