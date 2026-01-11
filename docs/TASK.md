@@ -46,7 +46,7 @@
 | T015 | ✅ | その他ブラウザ対応（macOS） | 1日 | T011,T012 | - | Brave, Opera, Vivaldi等 |
 | T016 | ✅ | ブラウザプロファイル指定機能（macOS） | 0.5日 | T011,T012,T014,T015 | - | :PROFILE構文対応 |
 | T017 | ✅ | Firefoxコンテナタブ対応（macOS） | 0.5日 | T012 | - | ::CONTAINER構文対応 |
-| T017c | ✅ | HTTPリクエストへのブラウザCookie適用 | 0.5日 | T011,T012,T013,T014,T015,T016,T017 | - | Cookieヘッダ生成 |
+| T017c | ✅ | HTTPリクエストへのブラウザCookie適用 | 0.5日 | T011,T012,T013,T014,T015,T016,T017 | - | Cookieヘッダー生成 |
 
 ### Phase 3b: ブラウザクッキー統合機能（Windows/Linux）
 
