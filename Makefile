@@ -1,6 +1,13 @@
 .PHONY: fmt fmt-check clippy-all-target clippy-no-deps check test build lint verify verify-release coverage coverage-ci dist dist-clean
 
 TOOLCHAIN := $(shell awk -F'"' '/^channel/ {print $$2}' rust-toolchain.toml)
+# Fallback: use active toolchain when rust-toolchain.toml is missing or unparsable.
+ifeq ($(strip $(TOOLCHAIN)),)
+TOOLCHAIN := $(shell rustup show active-toolchain 2>/dev/null | awk '{print $$1}')
+endif
+ifeq ($(strip $(TOOLCHAIN)),)
+$(error Failed to detect toolchain; set channel in rust-toolchain.toml)
+endif
 VERSION := $(shell sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
 HOST_TARGET := $(shell rustc -Vv | awk '/host/ {print $$2}')
 EXE_SUFFIX := $(if $(findstring windows,$(HOST_TARGET)),.exe,)
