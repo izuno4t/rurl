@@ -1,0 +1,14 @@
+error-http = HTTPエラー: {detail}
+error-invalid-url = 無効なURL: {detail}
+error-json = JSON解析エラー: {detail}
+error-ssl = SSL/TLSエラー: {detail}
+error-proxy = プロキシエラー: {detail}
+error-auth = 認証エラー: {detail}
+error-config = 設定エラー: {detail}
+error-timeout = ネットワークタイムアウト
+error-redirect-limit = リダイレクト回数の上限に到達しました ({limit})
+error-permission-denied = 権限がありません: {detail}
+error-file-not-found = ファイルが見つかりません: {detail}
+error-unsupported = 未対応の操作です: {detail}
+error-io = 入出力エラー: {detail}
+error-browser-cookie = ブラウザクッキーエラー: {detail}

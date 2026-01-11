@@ -38,6 +38,9 @@ jobs:
 
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
         
     - name: Cache cargo registry
       uses: actions/cache@v3
@@ -52,6 +55,9 @@ jobs:
           
     - name: Verify (fmt, clippy, check, test)
       run: make verify
+
+    - name: Security audit
+      run: cargo audit
 
   build:
     name: Build

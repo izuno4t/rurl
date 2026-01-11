@@ -1,32 +1,39 @@
-use httpmock::Method::{GET, POST};
-use httpmock::MockServer;
 use reqwest::header::{AUTHORIZATION, COOKIE};
 use rurl::config::{Config, HttpMethod};
 use rurl::error::RurlError;
 use rurl::http::HttpClient;
+use wiremock::matchers::{body_string, header, method, path};
+use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn can_bind_localhost() -> bool {
     std::net::TcpListener::bind("127.0.0.1:0").is_ok()
 }
 
+async fn received_requests(server: &MockServer) -> Vec<wiremock::Request> {
+    server.received_requests().await.expect("requests")
+}
+
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_follow_redirect_get() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(GET).path("/start");
-        then.status(302).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(GET).path("/final");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/start"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/final"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Get,
         follow_redirects: true,
         ..Config::default()
@@ -40,28 +47,32 @@ async fn test_follow_redirect_get() {
     assert_eq!(response_history.response.status(), 200);
     assert_eq!(response_history.chain.len(), 2);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert_eq!(requests.len(), 2);
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_post_redirect_switches_to_get_when_not_explicit() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(POST).path("/start").body("payload");
-        then.status(302).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(GET).path("/final");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/final"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Post,
         data: Some("payload".to_string()),
         follow_redirects: true,
@@ -76,28 +87,38 @@ async fn test_post_redirect_switches_to_get_when_not_explicit() {
     assert_eq!(response_history.response.status(), 200);
     assert_eq!(response_history.chain.len(), 2);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert!(requests
+        .iter()
+        .any(|req| req.method.as_str() == "POST" && req.url.path() == "/start"));
+    assert!(requests
+        .iter()
+        .any(|req| req.method.as_str() == "GET" && req.url.path() == "/final"));
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_post_redirect_keeps_method_when_explicit() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(POST).path("/start").body("payload");
-        then.status(302).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(POST).path("/final").body("payload");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/final"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Post,
         data: Some("payload".to_string()),
         request_method_explicit: true,
@@ -113,28 +134,33 @@ async fn test_post_redirect_keeps_method_when_explicit() {
     assert_eq!(response_history.response.status(), 200);
     assert_eq!(response_history.chain.len(), 2);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert!(requests
+        .iter()
+        .any(|req| req.method.as_str() == "POST" && req.url.path() == "/final"));
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_redirect_limit_exceeded() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(GET).path("/start");
-        then.status(302).header("Location", "/next");
-    });
-    let next = server.mock(|when, then| {
-        when.method(GET).path("/next");
-        then.status(302).header("Location", "/final");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/start"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/next"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/next"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Get,
         follow_redirects: true,
         max_redirects: Some(1),
@@ -149,46 +175,37 @@ async fn test_redirect_limit_exceeded() {
         Ok(_) => panic!("expected redirect limit error"),
     }
 
-    start.assert();
-    next.assert();
+    let requests = received_requests(&server).await;
+    assert_eq!(requests.len(), 2);
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_sensitive_headers_not_forwarded_to_other_origin() {
     if !can_bind_localhost() {
         return;
     }
 
-    let start_server = MockServer::start();
-    let target_server = MockServer::start();
-    let start = start_server.mock(|when, then| {
-        when.method(GET)
-            .path("/start")
-            .header(AUTHORIZATION.as_str(), "Bearer token")
-            .header(COOKIE.as_str(), "session=abc");
-        then.status(302)
-            .header("Location", target_server.url("/final"));
-    });
-    let auth_present = target_server.mock(|when, then| {
-        when.method(GET)
-            .path("/final")
-            .header(AUTHORIZATION.as_str(), "Bearer token");
-        then.status(401).body("auth header should not be forwarded");
-    });
-    let cookie_present = target_server.mock(|when, then| {
-        when.method(GET)
-            .path("/final")
-            .header(COOKIE.as_str(), "session=abc");
-        then.status(401)
-            .body("cookie header should not be forwarded");
-    });
-    let final_mock = target_server.mock(|when, then| {
-        when.method(GET).path("/final");
-        then.status(200).body("ok");
-    });
+    let start_server = MockServer::start().await;
+    let target_server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/start"))
+        .and(header(AUTHORIZATION.as_str(), "Bearer token"))
+        .and(header(COOKIE.as_str(), "session=abc"))
+        .respond_with(
+            ResponseTemplate::new(302)
+                .insert_header("Location", format!("{}/final", target_server.uri())),
+        )
+        .mount(&start_server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/final"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&target_server)
+        .await;
 
     let mut config = Config {
-        url: format!("{}/start", start_server.url("")),
+        url: format!("{}/start", start_server.uri()),
         method: HttpMethod::Get,
         follow_redirects: true,
         ..Config::default()
@@ -207,38 +224,41 @@ async fn test_sensitive_headers_not_forwarded_to_other_origin() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
-    auth_present.assert_hits(0);
-    cookie_present.assert_hits(0);
+    let requests = received_requests(&target_server).await;
+    assert_eq!(requests.len(), 1);
+    assert!(requests[0].headers.get(AUTHORIZATION.as_str()).is_none());
+    assert!(requests[0].headers.get(COOKIE.as_str()).is_none());
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_location_trusted_forwards_sensitive_headers() {
     if !can_bind_localhost() {
         return;
     }
 
-    let start_server = MockServer::start();
-    let target_server = MockServer::start();
-    let start = start_server.mock(|when, then| {
-        when.method(GET)
-            .path("/start")
-            .header(AUTHORIZATION.as_str(), "Bearer token")
-            .header(COOKIE.as_str(), "session=abc");
-        then.status(302)
-            .header("Location", target_server.url("/final"));
-    });
-    let final_mock = target_server.mock(|when, then| {
-        when.method(GET)
-            .path("/final")
-            .header(AUTHORIZATION.as_str(), "Bearer token")
-            .header(COOKIE.as_str(), "session=abc");
-        then.status(200).body("ok");
-    });
+    let start_server = MockServer::start().await;
+    let target_server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/start"))
+        .and(header(AUTHORIZATION.as_str(), "Bearer token"))
+        .and(header(COOKIE.as_str(), "session=abc"))
+        .respond_with(
+            ResponseTemplate::new(302)
+                .insert_header("Location", format!("{}/final", target_server.uri())),
+        )
+        .mount(&start_server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/final"))
+        .and(header(AUTHORIZATION.as_str(), "Bearer token"))
+        .and(header(COOKIE.as_str(), "session=abc"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&target_server)
+        .await;
 
     let mut config = Config {
-        url: format!("{}/start", start_server.url("")),
+        url: format!("{}/start", start_server.uri()),
         method: HttpMethod::Get,
         follow_redirects: true,
         location_trusted: true,
@@ -258,28 +278,35 @@ async fn test_location_trusted_forwards_sensitive_headers() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&target_server).await;
+    assert_eq!(requests.len(), 1);
+    assert!(requests[0].headers.get(AUTHORIZATION.as_str()).is_some());
+    assert!(requests[0].headers.get(COOKIE.as_str()).is_some());
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_post301_keeps_post() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(POST).path("/start").body("payload");
-        then.status(301).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(POST).path("/final").body("payload");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(301).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/final"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Post,
         data: Some("payload".to_string()),
         follow_redirects: true,
@@ -294,28 +321,33 @@ async fn test_post301_keeps_post() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert_eq!(requests.len(), 2);
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_post302_keeps_post() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(POST).path("/start").body("payload");
-        then.status(302).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(POST).path("/final").body("payload");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(302).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/final"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Post,
         data: Some("payload".to_string()),
         follow_redirects: true,
@@ -330,28 +362,33 @@ async fn test_post302_keeps_post() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert_eq!(requests.len(), 2);
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_post303_keeps_post() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(POST).path("/start").body("payload");
-        then.status(303).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(POST).path("/final").body("payload");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(303).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/final"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Post,
         data: Some("payload".to_string()),
         follow_redirects: true,
@@ -366,30 +403,32 @@ async fn test_post303_keeps_post() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert_eq!(requests.len(), 2);
 }
 
+#[cfg_attr(miri, ignore)]
 #[tokio::test]
 async fn test_put_redirect_303_switches_to_get() {
     if !can_bind_localhost() {
         return;
     }
 
-    let server = MockServer::start();
-    let start = server.mock(|when, then| {
-        when.method(httpmock::Method::PUT)
-            .path("/start")
-            .body("payload");
-        then.status(303).header("Location", "/final");
-    });
-    let final_mock = server.mock(|when, then| {
-        when.method(GET).path("/final");
-        then.status(200).body("ok");
-    });
+    let server = MockServer::start().await;
+    Mock::given(method("PUT"))
+        .and(path("/start"))
+        .and(body_string("payload"))
+        .respond_with(ResponseTemplate::new(303).insert_header("Location", "/final"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/final"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
 
     let config = Config {
-        url: format!("{}/start", server.url("")),
+        url: format!("{}/start", server.uri()),
         method: HttpMethod::Put,
         data: Some("payload".to_string()),
         follow_redirects: true,
@@ -403,6 +442,8 @@ async fn test_put_redirect_303_switches_to_get() {
         .expect("request should succeed");
     assert_eq!(response_history.response.status(), 200);
 
-    start.assert();
-    final_mock.assert();
+    let requests = received_requests(&server).await;
+    assert!(requests
+        .iter()
+        .any(|req| req.method.as_str() == "GET" && req.url.path() == "/final"));
 }
