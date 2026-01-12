@@ -11,3 +11,6 @@ pub async fn extract_cookies(config: &BrowserCookieConfig) -> Result<CookieStore
         config,
     )
 }
+
+#[cfg(test)]
+mod tests;

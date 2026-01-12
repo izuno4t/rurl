@@ -10,9 +10,9 @@ Before performing any task, you MUST do the following:
 1. Read and understand:
    - `WORKING_PRINCIPLES.md`
    - `RUST_CODING_GUIDELINES.md`
-   - `docs/TASK.md`
+   - `docs/TASK-1.1.0.md`
 2. Confirm that your planned actions comply with these documents.
-3. If task status does not match actual progress, update `docs/TASK.md`
+3. If task status does not match actual progress, update `docs/TASK-1.1.0.md`
    immediately to maintain accuracy.
 4. If a rule cannot be followed:
    - Explicitly state **which rule**
@@ -62,7 +62,7 @@ Reference sources:
   `src/lib.rs` (library). Core modules include `src/browser/`, `src/http/`,
   `src/cli/`, `src/config.rs`, and `src/error.rs`.
 - `tests/`: Integration tests (example: `tests/basic.rs`).
-- `docs/`: Project process docs (`docs/WORKING_PRINCIPLES.md`, `docs/TASK.md`,
+- `docs/`: Project process docs (`docs/WORKING_PRINCIPLES.md`, `docs/TASK-1.1.0.md`,
   `docs/LOCAL_DEVELOPMENT.md`).
 - `target/`: Build artifacts (generated).
 
@@ -100,15 +100,15 @@ Rust is older, rely on CI for build/test verification.
 
 - Commit style appears to follow Conventional Commits (e.g., `feat: Add ...`).
   Use `feat:`, `fix:`, `chore:`, etc.
-- PRs should describe the change, link related tasks from `docs/TASK.md`, and
+- PRs should describe the change, link related tasks from `docs/TASK-1.1.0.md`, and
   note any CLI behavior changes.
 
 ## Development Workflow Requirements
 
-- Always read `docs/WORKING_PRINCIPLES.md` and `docs/TASK.md` before starting
+- Always read `docs/WORKING_PRINCIPLES.md` and `docs/TASK-1.1.0.md` before starting
   work.
 - For any Git operations, read and follow `docs/GIT_RULES.md`.
-- Create a brief plan before implementation and update `docs/TASK.md` when task
+- Create a brief plan before implementation and update `docs/TASK-1.1.0.md` when task
   status changes.
 - When adding browser-cookie features, keep the yt-dlp style spec in mind:
   `BROWSER[+KEYRING][:PROFILE][::CONTAINER]`.

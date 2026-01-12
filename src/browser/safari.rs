@@ -20,6 +20,9 @@ pub async fn extract_cookies(config: &BrowserCookieConfig) -> Result<CookieStore
     }
 }
 
+#[cfg(test)]
+mod tests;
+
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
@@ -254,26 +257,23 @@ mod macos {
     }
 
     #[cfg(test)]
-    mod tests {
-        use super::{mac_absolute_to_unix, read_null_terminated_string_at, MAC_EPOCH_OFFSET};
+    pub(super) mod test_support {
+        use super::*;
 
-        #[test]
-        fn read_null_terminated_string_at_reads_value() {
-            let data = b"test\0rest";
-            let value = read_null_terminated_string_at(data, 0).expect("string");
-            assert_eq!(value, "test");
+        pub fn safari_cookie_path(profile: Option<&str>) -> Result<PathBuf> {
+            super::safari_cookie_path(profile)
         }
 
-        #[test]
-        fn read_null_terminated_string_at_rejects_missing_terminator() {
-            let err = read_null_terminated_string_at(b"test", 0).expect_err("missing");
-            let message = format!("{err}");
-            assert!(message.contains("not terminated"));
+        pub fn read_null_terminated_string_at(data: &[u8], offset: usize) -> Result<String> {
+            super::read_null_terminated_string_at(data, offset)
         }
 
-        #[test]
-        fn mac_absolute_to_unix_converts_seconds() {
-            assert_eq!(mac_absolute_to_unix(0.0), MAC_EPOCH_OFFSET);
+        pub fn mac_absolute_to_unix(timestamp: f64) -> i64 {
+            super::mac_absolute_to_unix(timestamp)
+        }
+
+        pub fn mac_epoch_offset() -> i64 {
+            super::MAC_EPOCH_OFFSET
         }
     }
 }

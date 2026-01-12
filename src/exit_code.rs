@@ -76,4 +76,41 @@ mod tests {
         let err = RurlError::Config("bad".to_string());
         assert_eq!(exit_code_for_error(&err), 2);
     }
+
+    #[test]
+    fn exit_code_maps_permission_and_not_found() {
+        let err = RurlError::PermissionDenied("no".to_string());
+        assert_eq!(exit_code_for_error(&err), 37);
+        let err = RurlError::FileNotFound("missing".to_string());
+        assert_eq!(exit_code_for_error(&err), 37);
+    }
+
+    #[test]
+    fn exit_code_maps_additional_variants() {
+        assert_eq!(
+            exit_code_for_error(&RurlError::Proxy("bad proxy".to_string())),
+            5
+        );
+        assert_eq!(
+            exit_code_for_error(&RurlError::BrowserCookie("cookie".to_string())),
+            43
+        );
+        assert_eq!(
+            exit_code_for_error(&RurlError::Json(serde_json::Error::io(
+                std::io::Error::other("json")
+            ))),
+            26
+        );
+        assert_eq!(
+            exit_code_for_error(&RurlError::Unsupported("nope".to_string())),
+            4
+        );
+        assert_eq!(
+            exit_code_for_error(&RurlError::Io(std::io::Error::from(
+                std::io::ErrorKind::Other
+            ))),
+            23
+        );
+        assert_eq!(exit_code_for_error(&RurlError::Timeout), 28);
+    }
 }

@@ -58,7 +58,7 @@ rurl is designed around three core principles:
 - **CI/CD Pipelines**: Drop-in curl replacement with enhanced safety
   guarantees
 
-## Installation & Building
+## Installation
 
 ### Prerequisites
 
@@ -66,73 +66,30 @@ rurl is designed around three core principles:
   local builds)
 - **Git**: For cloning the repository
 
-### Building from Source
+### Install from source
 
 ```bash
-# Clone the repository
 git clone https://github.com/izuno4t/rurl.git
 cd rurl
 
-# Build in development mode
-cargo build
-
-# Build optimized release version
-cargo build --release
-
-# Run tests
-cargo test
-
-# Install locally
+# Install into your cargo bin directory
 cargo install --path .
 
-# Package release artifact (tar.gz)
-make dist
+# Or build an optimized release binary in place
+cargo build --release
 ```
 
-### Development
+### macOS quarantine note
+
+If you use a release archive or a downloaded binary on macOS, remove the
+Gatekeeper quarantine attribute before running the binary:
 
 ```bash
-# Check code formatting
-cargo fmt --all -- --check
-
-# Run linter
-cargo clippy --all-targets -- -D warnings
-
-# Check compilation without building
-cargo check
+xattr -dr com.apple.quarantine rurl
 ```
 
-### Setup
-
-Run the setup script to install local tooling (uses `rust-toolchain.toml`
-channel):
-
-```bash
-./setup.sh
-```
-
-### Coverage
-
-Local coverage requires `cargo-llvm-cov`:
-
-```bash
-cargo install cargo-llvm-cov
-rustup component add llvm-tools-preview
-make coverage
-```
-
-`make verify` also runs coverage via `coverage-ci`.
-`make dist` creates `dist/rurl-<version>-<host-target>.tar.gz` with the release
-binary and basic docs.
-
-### Publishing (crates.io)
-
-crates.io への公開手順は `docs/PUBLISHING.md` を参照してください。
-
-**Local environment constraints**:
-If you are using an older Rust version (for example, 1.67.0), you will not be
-able to build locally. GitHub Actions is configured to automatically verify
-code quality and builds.
+Run this in the directory where the `rurl` binary resides (for example, after
+extracting the release tarball).
 
 ### **Man Page Synopsis**
 
@@ -325,3 +282,51 @@ AUTHOR
 COPYRIGHT
        This is free software; see the source for copying conditions.
 ```
+
+## Developer Information
+
+### Build and test
+
+```bash
+cargo build
+cargo build --release
+cargo test
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+cargo check
+make verify
+```
+
+### Setup
+
+Run the setup script to install local tooling (uses `rust-toolchain.toml`
+channel):
+
+```bash
+./setup.sh
+```
+
+### Coverage
+
+Local coverage requires `cargo-llvm-cov`:
+
+```bash
+cargo install cargo-llvm-cov
+rustup component add llvm-tools-preview
+make coverage
+```
+
+### Packaging
+
+`make dist` creates `dist/rurl-<version>-<host-target>.tar.gz` with the release
+binary and basic docs.
+
+### Publishing (crates.io)
+
+crates.ioへの公開手順は `docs/PUBLISHING.md` を参照してください。
+
+### Local environment constraints
+
+If you are using an older Rust version (for example, 1.67.0), you will not be
+able to build locally. GitHub Actions is configured to automatically verify
+code quality and builds.

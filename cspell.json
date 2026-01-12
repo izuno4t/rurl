@@ -44,7 +44,8 @@
     "tokio",
     "winapi",
     "wincrypt",
-    "winuser"
+    "winuser",
+    "xattr"
   ],
   "ignoreRegExpList": [
     "yt-dlp"
