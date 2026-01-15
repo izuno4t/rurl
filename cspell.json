@@ -23,6 +23,7 @@
     "DPAPI",
     "httpmock",
     "ionide",
+    "langid",
     "macos",
     "Miri",
     "MSRV",
@@ -33,6 +34,7 @@
     "reimplementation",
     "reqwest",
     "rurl",
+    "rusqlite",
     "rustc",
     "RUSTFLAGS",
     "rustfmt",
@@ -42,9 +44,12 @@
     "tempfile",
     "thiserror",
     "tokio",
+    "unic",
     "winapi",
+    "winbase",
     "wincrypt",
     "winuser",
+    "wiremock",
     "xattr"
   ],
   "ignoreRegExpList": [
