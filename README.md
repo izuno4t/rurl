@@ -66,6 +66,15 @@ rurl is designed around three core principles:
   local builds)
 - **Git**: For cloning the repository
 
+### Install with Homebrew
+
+```bash
+brew tap izuno4t/tap
+brew install rurl
+# or
+brew install izuno4t/tap/rurl
+```
+
 ### Install from source
 
 ```bash

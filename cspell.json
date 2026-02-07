@@ -23,6 +23,7 @@
     "DPAPI",
     "httpmock",
     "ionide",
+    "izuno",
     "langid",
     "macos",
     "Miri",
